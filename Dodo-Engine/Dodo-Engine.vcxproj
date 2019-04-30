@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="code\common\VKIntegration.cpp" />
+    <ClCompile Include="code\environment\Error.cpp" />
+    <ClCompile Include="code\main.cpp" />
+    <ClCompile Include="code\environment\Window.cpp" />
+    <ClCompile Include="code\engine\Engine.cpp" />
+    <ClCompile Include="code\renderer\Renderer.cpp" />
+    <ClCompile Include="ext\imgui\imgui.cpp" />
+    <ClCompile Include="ext\imgui\imgui_demo.cpp" />
+    <ClCompile Include="ext\imgui\imgui_draw.cpp" />
+    <ClCompile Include="ext\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="ext\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="code\environment\Log.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="code\common\DodoTypes.h" />
+    <ClInclude Include="code\common\VKHelpers.h" />
+    <ClInclude Include="code\Common\VKIntegration.h" />
+    <ClInclude Include="code\environment\Window.h" />
+    <ClInclude Include="code\engine\Engine.h" />
+    <ClInclude Include="code\environment\Error.h" />
+    <ClInclude Include="code\renderer\Material.h" />
+    <ClInclude Include="code\renderer\Renderer.h" />
+    <ClInclude Include="ext\imgui\imconfig.h" />
+    <ClInclude Include="ext\imgui\imgui.h" />
+    <ClInclude Include="ext\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="ext\imgui\imgui_internal.h" />
+    <ClInclude Include="ext\imgui\imstb_rectpack.h" />
+    <ClInclude Include="ext\imgui\imstb_textedit.h" />
+    <ClInclude Include="ext\imgui\imstb_truetype.h" />
+    <ClInclude Include="ext\spdlog\async.h" />
+    <ClInclude Include="ext\spdlog\async_logger.h" />
+    <ClInclude Include="ext\spdlog\common.h" />
+    <ClInclude Include="ext\spdlog\details\async_logger_impl.h" />
+    <ClInclude Include="ext\spdlog\details\circular_q.h" />
+    <ClInclude Include="ext\spdlog\details\console_globals.h" />
+    <ClInclude Include="ext\spdlog\details\file_helper.h" />
+    <ClInclude Include="ext\spdlog\details\fmt_helper.h" />
+    <ClInclude Include="ext\spdlog\details\logger_impl.h" />
+    <ClInclude Include="ext\spdlog\details\log_msg.h" />
+    <ClInclude Include="ext\spdlog\details\mpmc_blocking_q.h" />
+    <ClInclude Include="ext\spdlog\details\null_mutex.h" />
+    <ClInclude Include="ext\spdlog\details\os.h" />
+    <ClInclude Include="ext\spdlog\details\pattern_formatter.h" />
+    <ClInclude Include="ext\spdlog\details\periodic_worker.h" />
+    <ClInclude Include="ext\spdlog\details\registry.h" />
+    <ClInclude Include="ext\spdlog\details\thread_pool.h" />
+    <ClInclude Include="ext\spdlog\fmt\bin_to_hex.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\chrono.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\color.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\core.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\format-inl.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\format.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\locale.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\ostream.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\posix.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\printf.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\ranges.h" />
+    <ClInclude Include="ext\spdlog\fmt\bundled\time.h" />
+    <ClInclude Include="ext\spdlog\fmt\fmt.h" />
+    <ClInclude Include="ext\spdlog\fmt\ostr.h" />
+    <ClInclude Include="ext\spdlog\formatter.h" />
+    <ClInclude Include="ext\spdlog\logger.h" />
+    <ClInclude Include="ext\spdlog\sinks\android_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\ansicolor_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\base_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\basic_file_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\daily_file_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\dist_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\msvc_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\null_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\ostream_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\rotating_file_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\stdout_color_sinks.h" />
+    <ClInclude Include="ext\spdlog\sinks\stdout_sinks.h" />
+    <ClInclude Include="ext\spdlog\sinks\syslog_sink.h" />
+    <ClInclude Include="ext\spdlog\sinks\wincolor_sink.h" />
+    <ClInclude Include="ext\spdlog\spdlog.h" />
+    <ClInclude Include="ext\spdlog\tweakme.h" />
+    <ClInclude Include="ext\spdlog\version.h" />
+    <ClInclude Include="code\environment\Log.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\default.frag" />
+    <None Include="shaders\default.vert" />
+    <None Include="shaders\test.frag" />
+    <None Include="shaders\test.vert" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{33B508C5-BEA6-42B9-9C21-1151BEEC12CF}</ProjectGuid>
+    <RootNamespace>DodoEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
+    <IncludePath>$(ProjectDir)ext;$(ProjectDir)code;D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\include;D:\Development\Vulkan\glm;$(VULKAN_SDK)\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
+    <IncludePath>$(ProjectDir)ext;$(ProjectDir)code;D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\include;D:\Development\Vulkan\glm;$(VULKAN_SDK)\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)code;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\lib-vc2015;$(VULKAN_SDK\Lib\vulkan-1)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Link>
+      <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN64\lib-vc2015;$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)code;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN64\lib-vc2015;$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
