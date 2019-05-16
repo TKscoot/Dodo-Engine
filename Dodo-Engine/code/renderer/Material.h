@@ -98,10 +98,17 @@ namespace Dodo
 			
 
 			// Getter / Setter
-			Shaders shaders() { return m_shaders; }
+			Shaders const shaders() const { return m_shaders; }
+			const std::vector<Vertex> const vertices() { return m_vertices; }
 
+			std::vector<Vertex> m_vertices = {
+				{{0.0f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+				{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+				{{-0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+			};
 		protected:
 			Shaders m_shaders;
+
 		};
 
 		class TestMaterial : public CMaterial

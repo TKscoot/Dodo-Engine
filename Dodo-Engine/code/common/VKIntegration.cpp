@@ -151,6 +151,25 @@ VkResult Dodo::Rendering::VKIntegration::CreateLogicalDevice(VkSurfaceKHR *_surf
 	return result;
 }
 
+uint32_t Dodo::Rendering::VKIntegration::FindMemoryType(uint32_t _typeFilter, VkMemoryPropertyFlags _properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+
+	vkGetPhysicalDeviceMemoryProperties(m_vkPhysicalDevice, &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+	{
+		if ((_typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & _properties) == _properties)
+		{
+			return i;
+		}
+	}
+
+	CLog::Error("Failed to find suitable memory type!");
+
+	return 1337;
+}
+
 VkResult Dodo::Rendering::VKIntegration::SetupValidationLayers()
 {
 	VkResult result;

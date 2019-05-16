@@ -16,6 +16,7 @@ DodoError Dodo::Rendering::CRenderer::Initialize(std::shared_ptr<VKIntegration> 
 	CreateGraphicsPipeline();
 	CreateFramebuffers();
 	CreateCommandPool();
+	CreateVertexBuffers();
 	CreateCommandBuffers();
 	CreateSyncObjects();
 
@@ -296,12 +297,10 @@ VkResult Dodo::Rendering::CRenderer::CreateGraphicsPipeline()
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType						    = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	//vertexInputInfo.vertexBindingDescriptionCount	= 1;
-	//vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions		= 0; //&bindingDescriptions;
-	vertexInputInfo.pVertexAttributeDescriptions	= 0; //attributeDescriptions.data();
+	vertexInputInfo.vertexBindingDescriptionCount   = 1;
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	vertexInputInfo.pVertexBindingDescriptions		= &bindingDescriptions;
+	vertexInputInfo.pVertexAttributeDescriptions	= attributeDescriptions.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType					 = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -455,6 +454,52 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandPool()
 	return result;
 }
 
+VkResult Dodo::Rendering::CRenderer::CreateVertexBuffers()
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+
+	for (const std::shared_ptr<Rendering::CMaterial> material : m_pMaterials)
+	{
+		const std::vector<Vertex> verts = material->vertices();
+		VertexBuffer buffer = {};
+
+		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType	   = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size		   = sizeof(verts[0]) * verts.size();
+		bufferInfo.usage	   = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		result = vkCreateBuffer(m_pIntegration->device(), &bufferInfo, nullptr, &buffer.vertexBuffer);
+		CError::CheckError<VkResult>(result);
+
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(m_pIntegration->device(), buffer.vertexBuffer, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = m_pIntegration->FindMemoryType(
+			memRequirements.memoryTypeBits, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
+			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		result = vkAllocateMemory(m_pIntegration->device(), &allocInfo, nullptr, &buffer.vertexBufferMemory);
+		CError::CheckError<VkResult>(result);
+
+		vkBindBufferMemory(m_pIntegration->device(), buffer.vertexBuffer, buffer.vertexBufferMemory, 0);
+
+		// copying vert data to buffer
+		void* data;
+		vkMapMemory(m_pIntegration->device(), buffer.vertexBufferMemory, 0, bufferInfo.size, 0, &data);
+			memcpy(data, verts.data(), (size_t)bufferInfo.size);
+		vkUnmapMemory(m_pIntegration->device(), buffer.vertexBufferMemory);
+
+		m_vkVertexBuffers.push_back(buffer);
+	}
+
+	return result;
+}
+
 VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
@@ -495,7 +540,17 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 
 		vkCmdBindPipeline(m_vkCommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_vkGraphicsPipeline);
 
-		vkCmdDraw(m_vkCommandBuffers[i], 3, 1, 0, 0);
+		//std::vector<VkBuffer> vertexBuffers = {};
+		VkBuffer *vertexBuffers = new VkBuffer[m_vkVertexBuffers.size()];
+		for (int j = 0; j < m_vkVertexBuffers.size(); j++)
+		{
+			vertexBuffers[j] = m_vkVertexBuffers[j].vertexBuffer;
+		}
+		
+		VkDeviceSize offsets[] = {0};
+		vkCmdBindVertexBuffers(m_vkCommandBuffers[i], 0, (sizeof(vertexBuffers) / sizeof(*vertexBuffers)), vertexBuffers, offsets);	// evtl buggy bei mehreren vertex buffern
+
+		vkCmdDraw(m_vkCommandBuffers[i], sizeof(m_pMaterials[0]->m_vertices), 1, 0, 0);	// only drawing one triangle even 2 vert buffers are bound
 
 		vkCmdEndRenderPass(m_vkCommandBuffers[i]);
 

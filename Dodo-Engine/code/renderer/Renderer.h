@@ -47,6 +47,7 @@ namespace Dodo
 			VkResult CreateGraphicsPipeline();
 			VkResult CreateFramebuffers();
 			VkResult CreateCommandPool();
+			VkResult CreateVertexBuffers();
 			VkResult CreateCommandBuffers();
 			VkResult CreateSyncObjects();
 
@@ -66,6 +67,12 @@ namespace Dodo
 				std::vector<VkFence>     inFlightFences;
 			};
 
+			struct VertexBuffer
+			{
+				VkBuffer vertexBuffer;
+				VkDeviceMemory vertexBufferMemory;
+			};
+
 			// Variables
 			VkSwapchainKHR				 m_vkSwapChain		       = VK_NULL_HANDLE;
 			VkRenderPass				 m_vkRenderPass		       = VK_NULL_HANDLE;
@@ -77,6 +84,7 @@ namespace Dodo
 			std::vector<VkImageView>	 m_vkSwapChainImageViews   = {};
 			std::vector<VkFramebuffer>	 m_vkSwapChainFramebuffers = {};
 			std::vector<VkCommandBuffer> m_vkCommandBuffers		   = {};
+			std::vector<VertexBuffer>	 m_vkVertexBuffers		   = {};
 			VkFormat				     m_vkSwapChainImageFormat;
 			VkExtent2D				     m_vkSwapChainExtent;
 			SyncObjects				     m_sSyncObjects;

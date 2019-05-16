@@ -38,6 +38,8 @@ namespace Dodo
 			VkResult ChoosePhysicalDevice();
 			VkResult CreateLogicalDevice(VkSurfaceKHR *_surface);
 
+			uint32_t FindMemoryType(uint32_t _typeFilter, VkMemoryPropertyFlags _properties);
+
 			// getter/setter
 			VkInstance		 const vulkanInstance() const { return m_vkInstance; };
 			VkPhysicalDevice const physicalDevice() const { return m_vkPhysicalDevice; }

@@ -26,15 +26,26 @@ namespace Dodo::Engine
 		m_pVulkanIntegration->CreateLogicalDevice(m_pWindow->GetSurface());
 
 		Rendering::CMaterial::ShaderInfo shaderInfo;
-		shaderInfo.vertexShaderFileName   = "shaders/vert.spv";
-		shaderInfo.fragmentShaderFileName = "shaders/frag.spv";
+		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
+		shaderInfo.fragmentShaderFileName = "shaders/default.frag.spv";
 
 		std::shared_ptr<Rendering::TestMaterial> mat = std::make_shared<Rendering::TestMaterial>(m_pVulkanIntegration, shaderInfo);
+		std::shared_ptr<Rendering::TestMaterial> mat1 = std::make_shared<Rendering::TestMaterial>(m_pVulkanIntegration, shaderInfo);
+
+		std::vector<Vertex> vertices =
+		{
+				{{-0.2f, 0.6f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 1.0f}},
+				{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+				{{0.0f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}}
+		};
+		mat1->m_vertices = vertices;
 
 		mat->Update();
+		mat1->Update();
 
 		std::vector<std::shared_ptr<Rendering::CMaterial>> materials = {};
 		materials.push_back(mat);
+		materials.push_back(mat1);
 
 		// renderer init
 		m_pRenderer = std::make_shared<Rendering::CRenderer>(materials);
