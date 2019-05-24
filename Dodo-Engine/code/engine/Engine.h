@@ -7,7 +7,9 @@
 #include "environment/Window.h"
 #include "common/VKIntegration.h"
 #include "renderer/Renderer.h"
-#include "renderer/Material.h"
+#include "components/Material.h"
+#include "entity/EntityHandler.h"
+#include "components/ECS.h"
 
 namespace Dodo
 {

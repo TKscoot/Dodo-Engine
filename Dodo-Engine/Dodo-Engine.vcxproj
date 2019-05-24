@@ -25,29 +25,19 @@
     <ClCompile Include="code\environment\Window.cpp" />
     <ClCompile Include="code\engine\Engine.cpp" />
     <ClCompile Include="code\renderer\Renderer.cpp" />
-    <ClCompile Include="ext\imgui\imgui.cpp" />
-    <ClCompile Include="ext\imgui\imgui_demo.cpp" />
-    <ClCompile Include="ext\imgui\imgui_draw.cpp" />
-    <ClCompile Include="ext\imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="ext\imgui\imgui_widgets.cpp" />
     <ClCompile Include="code\environment\Log.cpp" />
+    <ClCompile Include="code\entity\EntityHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\common\DodoTypes.h" />
     <ClInclude Include="code\common\VKHelpers.h" />
     <ClInclude Include="code\Common\VKIntegration.h" />
+    <ClInclude Include="code\components\ECS.h" />
     <ClInclude Include="code\environment\Window.h" />
     <ClInclude Include="code\engine\Engine.h" />
     <ClInclude Include="code\environment\Error.h" />
-    <ClInclude Include="code\renderer\Material.h" />
+    <ClInclude Include="code\components\Material.h" />
     <ClInclude Include="code\renderer\Renderer.h" />
-    <ClInclude Include="ext\imgui\imconfig.h" />
-    <ClInclude Include="ext\imgui\imgui.h" />
-    <ClInclude Include="ext\imgui\imgui_impl_glfw.h" />
-    <ClInclude Include="ext\imgui\imgui_internal.h" />
-    <ClInclude Include="ext\imgui\imstb_rectpack.h" />
-    <ClInclude Include="ext\imgui\imstb_textedit.h" />
-    <ClInclude Include="ext\imgui\imstb_truetype.h" />
     <ClInclude Include="ext\spdlog\async.h" />
     <ClInclude Include="ext\spdlog\async_logger.h" />
     <ClInclude Include="ext\spdlog\common.h" />
@@ -100,6 +90,7 @@
     <ClInclude Include="ext\spdlog\tweakme.h" />
     <ClInclude Include="ext\spdlog\version.h" />
     <ClInclude Include="code\environment\Log.h" />
+    <ClInclude Include="code\entity\EntityHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\default.frag" />

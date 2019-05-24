@@ -2,7 +2,7 @@
 #include "common/VKIntegration.h"
 #include "common/VKHelpers.h"
 #include "environment/Window.h"
-#include "Material.h"
+#include "components/Material.h"
 #include "common/DodoTypes.h"
 
 #include <algorithm>
@@ -11,6 +11,8 @@ namespace Dodo
 {
 	namespace Rendering
 	{
+		using namespace Dodo::Components;
+
 		class CRenderer
 		{
 			struct SwapChainSupportDetails
@@ -48,8 +50,19 @@ namespace Dodo
 			VkResult CreateFramebuffers();
 			VkResult CreateCommandPool();
 			VkResult CreateVertexBuffers();
+			VkResult CreateIndexBuffers();
+			VkResult CreateUniformBuffers();
 			VkResult CreateCommandBuffers();
 			VkResult CreateSyncObjects();
+
+			VkResult CreateBuffer(
+				VkDeviceSize _size, 
+				VkBufferUsageFlags _usage, 
+				VkMemoryPropertyFlags _properties, 
+				VkBuffer &_buffer, 
+				VkDeviceMemory &_bufferMemory);
+
+			VkResult CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 
 			VkResult CleanupSwapChain();
 			VkResult RecreateSwapChain();
@@ -67,27 +80,22 @@ namespace Dodo
 				std::vector<VkFence>     inFlightFences;
 			};
 
-			struct VertexBuffer
-			{
-				VkBuffer vertexBuffer;
-				VkDeviceMemory vertexBufferMemory;
-			};
 
 			// Variables
-			VkSwapchainKHR				 m_vkSwapChain		       = VK_NULL_HANDLE;
-			VkRenderPass				 m_vkRenderPass		       = VK_NULL_HANDLE;
-			VkDescriptorSetLayout		 m_vkDescriptorSetLayout   = VK_NULL_HANDLE;
-			VkPipelineLayout			 m_vkPipelineLayout	       = VK_NULL_HANDLE;
-			VkPipeline					 m_vkGraphicsPipeline	   = VK_NULL_HANDLE;
-			VkCommandPool				 m_vkCommandPool		   = VK_NULL_HANDLE;
-			std::vector<VkImage>		 m_vkSwapChainImages	   = {};
-			std::vector<VkImageView>	 m_vkSwapChainImageViews   = {};
-			std::vector<VkFramebuffer>	 m_vkSwapChainFramebuffers = {};
-			std::vector<VkCommandBuffer> m_vkCommandBuffers		   = {};
-			std::vector<VertexBuffer>	 m_vkVertexBuffers		   = {};
-			VkFormat				     m_vkSwapChainImageFormat;
-			VkExtent2D				     m_vkSwapChainExtent;
-			SyncObjects				     m_sSyncObjects;
+			VkSwapchainKHR					   m_vkSwapChain		     = VK_NULL_HANDLE;
+			VkRenderPass					   m_vkRenderPass		     = VK_NULL_HANDLE;
+			VkDescriptorSetLayout			   m_vkDescriptorSetLayout	 = VK_NULL_HANDLE;
+			VkPipelineLayout				   m_vkPipelineLayout	     = VK_NULL_HANDLE;
+			VkPipeline						   m_vkGraphicsPipeline	     = VK_NULL_HANDLE;
+			VkCommandPool					   m_vkCommandPool		     = VK_NULL_HANDLE;
+			std::vector<VkImage>			   m_vkSwapChainImages	     = {};
+			std::vector<VkImageView>		   m_vkSwapChainImageViews   = {};
+			std::vector<VkFramebuffer>		   m_vkSwapChainFramebuffers = {};
+			std::vector<VkCommandBuffer>	   m_vkCommandBuffers		 = {};
+			std::vector<CMaterial::DataBuffer> m_matDataBuffers		 = {};
+			VkFormat						   m_vkSwapChainImageFormat;
+			VkExtent2D						   m_vkSwapChainExtent;
+			SyncObjects						   m_sSyncObjects;
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
 			std::shared_ptr<CWindow>       m_pWindow;

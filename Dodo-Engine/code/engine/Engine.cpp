@@ -34,10 +34,12 @@ namespace Dodo::Engine
 
 		std::vector<Vertex> vertices =
 		{
-				{{-0.2f, 0.6f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 1.0f}},
-				{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-				{{0.0f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}}
+			{{0.3f, -0.85f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f},	 {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.9f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f},	 {0.0f, 0.0f, 1.0f}}
 		};
+
+		//mat->m_vertices = vertices;
 		mat1->m_vertices = vertices;
 
 		mat->Update();
@@ -51,11 +53,6 @@ namespace Dodo::Engine
 		m_pRenderer = std::make_shared<Rendering::CRenderer>(materials);
 		m_pRenderer->Initialize(m_pVulkanIntegration, m_pWindow);
 
-
-
-		//std::shared_ptr<Rendering::TestMaterial> mat = std::make_shared<Rendering::TestMaterial>();
-		
-
 		return result;
 	}
 
@@ -66,14 +63,25 @@ namespace Dodo::Engine
 		auto lastTime = std::chrono::high_resolution_clock::now();
 		while (m_bRunning && !glfwWindowShouldClose(m_pWindow->GetWindow()))
 		{
+			// delta time stuff
 			auto newtime = std::chrono::high_resolution_clock::now();
 			lastTime     = std::chrono::high_resolution_clock::now();
+
+			// Poll window and keyboard events
 			glfwPollEvents();
+
+			// Update all entities
 			result = Update();
+
+			// Draw the frame
 			m_pRenderer->DrawFrame();
+
+			// delta time stuff
 			newtime = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> delta = newtime - lastTime;
+
 			m_deltaTime = delta.count();
+
 			float fps = 1.0 / m_deltaTime;
 			char buf[10];
 			sprintf_s(buf, "%.1f", fps);
@@ -81,12 +89,12 @@ namespace Dodo::Engine
 			newtime = lastTime;
 		}
 
-
 		return result;
 	}
 
 	DodoError CEngine::Update()
 	{
+		Entity::CEntityHandler::Update();
 
 		return DodoError::DODO_OK;
 	}

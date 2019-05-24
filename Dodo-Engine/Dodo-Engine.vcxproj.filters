@@ -21,21 +21,6 @@
     <ClCompile Include="code\environment\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ext\imgui\imgui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ext\imgui\imgui_demo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ext\imgui\imgui_draw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ext\imgui\imgui_widgets.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ext\imgui\imgui_impl_glfw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="code\environment\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,30 +36,12 @@
     <ClCompile Include="code\renderer\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\entity\EntityHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\environment\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imconfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imgui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imgui_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imstb_rectpack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imstb_textedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imstb_truetype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\imgui\imgui_impl_glfw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ext\spdlog\async.h">
@@ -248,10 +215,16 @@
     <ClInclude Include="code\common\VKHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="code\renderer\Material.h">
+    <ClInclude Include="code\common\DodoTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="code\common\DodoTypes.h">
+    <ClInclude Include="code\components\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\entity\EntityHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\components\ECS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

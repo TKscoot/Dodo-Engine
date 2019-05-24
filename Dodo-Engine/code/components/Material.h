@@ -1,14 +1,16 @@
 #pragma once
 #include "environment/Error.h"
 #include "common/DodoTypes.h"
+#include "ECS.h"
 
 namespace Dodo
 {
-	namespace Rendering
+	namespace Components
 	{
 		using namespace Dodo::Environment;
+		using namespace Dodo::Rendering;
 		
-		class CMaterial
+		class CMaterial : public CComponent
 		{
 		public:
 			static VkVertexInputBindingDescription GetBindingDescription()
@@ -66,6 +68,27 @@ namespace Dodo
 				VkPipelineShaderStageCreateInfo fragShaderStage;
 			};
 
+			struct DataBuffer
+			{
+				// Vertex buffer
+				VkBuffer vertexBuffer;
+				VkDeviceMemory vertexBufferMemory;
+
+				// Index buffer
+				VkBuffer indexBuffer;
+				VkDeviceMemory indexBufferMemory;
+
+				VkBuffer uniformBuffer;
+				VkDeviceMemory uniformBufferMemory;
+			};
+
+			struct UniformBufferObject
+			{
+				Matrix4x4 model;
+				Matrix4x4 View;
+				Matrix4x4 projection;
+			};
+
 			CMaterial(std::shared_ptr<VKIntegration> _integration, ShaderInfo _shaderInfo)
 			{
 				VkShaderModule vertShaderModule = VKHelper::CreateShaderModule(_integration, _shaderInfo.vertexShaderFileName);
@@ -92,8 +115,8 @@ namespace Dodo
 
 			virtual DodoError Create() { return DODO_OK; }
 			virtual DodoError Initialize() { return DODO_OK; }
-			virtual DodoError Finalize() { return DODO_OK; }			
-			virtual DodoError Update() { return DODO_OK; }
+			virtual void Finalize() { }			
+			virtual void Update() { }
 			virtual DodoError Commit() { return DODO_OK; }	
 			
 
@@ -102,10 +125,18 @@ namespace Dodo
 			const std::vector<Vertex> const vertices() { return m_vertices; }
 
 			std::vector<Vertex> m_vertices = {
-				{{0.0f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-				{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-				{{-0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+				{{-0.5f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+				{{0.5f, -0.5f , 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+				{{0.5f, 0.5f  , 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+				{{-0.5f, 0.5f , 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}}
 			};
+
+			std::vector<uint32_t> indices = {
+				0, 1, 2, 2, 3, 0
+			};
+
+			DataBuffer m_dataBuffers;
+
 		protected:
 			Shaders m_shaders;
 
