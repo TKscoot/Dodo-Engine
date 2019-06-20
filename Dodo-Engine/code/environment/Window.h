@@ -1,11 +1,11 @@
 #pragma once
 
+#include "dodopch.h"
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW\glfw3.h>
+
 
 #pragma comment(lib, "glfw3.lib")
 
-#include <memory>
 #include "environment/Error.h"
 
 namespace Dodo

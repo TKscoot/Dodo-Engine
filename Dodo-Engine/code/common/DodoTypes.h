@@ -1,17 +1,28 @@
 #pragma once
+#include "dodopch.h"
 #include "VKIntegration.h"
 
-typedef glm::vec3 Vector3f;
-typedef glm::vec2 Vector2f;
-typedef glm::mat4 Matrix4x4;
-
-
-struct Vertex
+namespace Dodo
 {
-	Vector3f position;
-	Vector3f normal;
-	Vector3f tangent;
-	Vector2f texcoords;
+	namespace Math
+	{
+		typedef glm::vec3 Vector3f;
+		typedef glm::vec2 Vector2f;
+		typedef glm::mat4 Matrix4x4;
 
-	Vector3f color;
-};
+	}
+
+	struct Vertex
+	{
+		Math::Vector3f position;
+		Math::Vector3f normal;
+		Math::Vector3f tangent;
+		Math::Vector2f texcoords;
+
+		Math::Vector3f color;
+	};
+}
+
+
+
+

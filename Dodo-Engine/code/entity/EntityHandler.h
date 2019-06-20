@@ -1,6 +1,6 @@
 #pragma once
-//#include "Entity.h"
-#include "components/ECS.h"
+#include "dodopch.h"
+#include "entity/Entity.h"
 
 namespace Dodo
 {
@@ -16,9 +16,10 @@ namespace Dodo
 			static void Refresh();
 
 			static void AddEntity(Dodo::Entity::CEntity *_ent);
+			static std::vector<std::shared_ptr<Dodo::Entity::CEntity>> GetEntities() { return m_vEntities; }
 
 		private:
-			static std::vector<std::unique_ptr<Dodo::Entity::CEntity>> m_vEntities;
+			static std::vector<std::shared_ptr<Dodo::Entity::CEntity>> m_vEntities;
 		};
 	}
 }

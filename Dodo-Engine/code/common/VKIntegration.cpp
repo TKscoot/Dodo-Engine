@@ -1,3 +1,4 @@
+#include "dodopch.h"
 #include "VKIntegration.h"
 
 using namespace Dodo;
@@ -317,6 +318,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL Dodo::Rendering::VKIntegration::debugCallback(
 	const char* msg,
 	void* userData)
 {
+
 	switch (flags)
 	{
 	case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:

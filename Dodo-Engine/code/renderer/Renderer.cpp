@@ -1,3 +1,4 @@
+#include "dodopch.h"
 #include "Renderer.h"
 
 using namespace Dodo::Environment;
@@ -59,6 +60,9 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame()
 	{
 		CError::CheckError<VkResult>(vkResult);
 	}
+
+	// TODO: Update uniform buffers here!!
+
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -460,7 +464,7 @@ VkResult Dodo::Rendering::CRenderer::CreateVertexBuffers()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	for (const std::shared_ptr<Rendering::CMaterial> material : m_pMaterials)
+	for (const std::shared_ptr<Components::CMaterial> material : m_pMaterials)
 	{
 		const std::vector<Vertex> verts = material->vertices();
 		VkDeviceSize bufferSize = sizeof(verts[0]) * verts.size();
@@ -506,7 +510,7 @@ VkResult Dodo::Rendering::CRenderer::CreateIndexBuffers()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	for (const std::shared_ptr<Rendering::CMaterial> material : m_pMaterials)
+	for (const std::shared_ptr<Components::CMaterial> material : m_pMaterials)
 	{
 		VkDeviceSize bufferSize = sizeof(material->indices[0]) * material->indices.size();
 
@@ -541,7 +545,7 @@ VkResult Dodo::Rendering::CRenderer::CreateUniformBuffers()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	for (const std::shared_ptr<Rendering::CMaterial> material : m_pMaterials)
+	for (const std::shared_ptr<Components::CMaterial> material : m_pMaterials)
 	{
 		VkDeviceSize bufferSize = sizeof(CMaterial::UniformBufferObject);
 
@@ -724,6 +728,13 @@ VkResult Dodo::Rendering::CRenderer::CopyBuffer(VkBuffer _srcBuffer, VkBuffer _d
 	vkQueueWaitIdle(m_pIntegration->queues().graphicsQueue);
 
 	vkFreeCommandBuffers(m_pIntegration->device(), m_vkCommandPool, 1, &commandBuffer);
+
+	return result;
+}
+
+VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer(uint32_t _currentImage)
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
 	return result;
 }

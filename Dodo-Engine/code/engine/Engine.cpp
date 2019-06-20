@@ -1,9 +1,11 @@
+#include "dodopch.h"
 #include "Engine.h"
 
 namespace Dodo::Engine
 {
 	DodoError CEngine::Initialize()
 	{
+		CLog::CreateLogger("logger_console");
 		CLog::SetFormat("[%H:%M:%S] [%^%l%$]: %v");
 		DodoError result;
 		m_pWindow = std::make_shared<CWindow>();
@@ -25,12 +27,16 @@ namespace Dodo::Engine
 
 		m_pVulkanIntegration->CreateLogicalDevice(m_pWindow->GetSurface());
 
-		Rendering::CMaterial::ShaderInfo shaderInfo;
+		Components::CMaterial::ShaderInfo shaderInfo;
 		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
 		shaderInfo.fragmentShaderFileName = "shaders/default.frag.spv";
 
-		std::shared_ptr<Rendering::TestMaterial> mat = std::make_shared<Rendering::TestMaterial>(m_pVulkanIntegration, shaderInfo);
-		std::shared_ptr<Rendering::TestMaterial> mat1 = std::make_shared<Rendering::TestMaterial>(m_pVulkanIntegration, shaderInfo);
+		std::shared_ptr<Entity::CEntity> ent1 = std::make_shared<Entity::CEntity>();
+		std::shared_ptr<Entity::CEntity> ent2 = std::make_shared<Entity::CEntity>();
+		//std::shared_ptr<Entity::TestEnt> testEnt = std::make_shared<Entity::TestEnt>();
+		
+		std::shared_ptr<Components::CMaterial> mat1 = ent1->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		std::shared_ptr<Components::CMaterial> mat2 = ent2->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
 
 		std::vector<Vertex> vertices =
 		{
@@ -39,19 +45,17 @@ namespace Dodo::Engine
 			{{-0.5f, 0.9f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f},	 {0.0f, 0.0f, 1.0f}}
 		};
 
-		//mat->m_vertices = vertices;
-		mat1->m_vertices = vertices;
+		mat2->m_vertices = vertices;
 
-		mat->Update();
-		mat1->Update();
+		std::vector<std::shared_ptr<Dodo::Entity::CEntity>> entities = Entity::CEntityHandler::GetEntities();
+		std::vector<std::shared_ptr<Components::CMaterial>> materials = { mat1, mat2 };
 
-		std::vector<std::shared_ptr<Rendering::CMaterial>> materials = {};
-		materials.push_back(mat);
-		materials.push_back(mat1);
 
 		// renderer init
 		m_pRenderer = std::make_shared<Rendering::CRenderer>(materials);
 		m_pRenderer->Initialize(m_pVulkanIntegration, m_pWindow);
+
+		CLog::Message("======== Engine Initialized! ========");
 
 		return result;
 	}

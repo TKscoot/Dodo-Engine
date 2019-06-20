@@ -1,6 +1,5 @@
 #pragma once
-#include <memory>
-#include <chrono>
+#include "dodopch.h"
 
 #include "environment/Error.h"
 #include "environment/Log.h"
@@ -10,6 +9,7 @@
 #include "components/Material.h"
 #include "entity/EntityHandler.h"
 #include "components/ECS.h"
+#include "entity/Entity.h"
 
 namespace Dodo
 {

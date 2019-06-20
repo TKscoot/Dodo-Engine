@@ -1,4 +1,5 @@
 #pragma once
+#include "dodopch.h"
 #include "common/VKIntegration.h"
 #include "Log.h"
 

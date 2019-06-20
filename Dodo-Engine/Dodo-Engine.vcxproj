@@ -19,9 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\dodopch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">dodopch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">dodopch.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="code\common\VKIntegration.cpp" />
+    <ClCompile Include="code\entity\Entity.cpp" />
     <ClCompile Include="code\environment\Error.cpp" />
-    <ClCompile Include="code\main.cpp" />
+    <ClCompile Include="code\main.cpp">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
+    </ClCompile>
     <ClCompile Include="code\environment\Window.cpp" />
     <ClCompile Include="code\engine\Engine.cpp" />
     <ClCompile Include="code\renderer\Renderer.cpp" />
@@ -29,10 +39,13 @@
     <ClCompile Include="code\entity\EntityHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="code\dodopch.h" />
     <ClInclude Include="code\common\DodoTypes.h" />
     <ClInclude Include="code\common\VKHelpers.h" />
     <ClInclude Include="code\Common\VKIntegration.h" />
     <ClInclude Include="code\components\ECS.h" />
+    <ClInclude Include="code\components\Transform.h" />
+    <ClInclude Include="code\entity\Entity.h" />
     <ClInclude Include="code\environment\Window.h" />
     <ClInclude Include="code\engine\Engine.h" />
     <ClInclude Include="code\environment\Error.h" />
@@ -171,6 +184,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)code;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>dodopch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\lib-vc2015;$(VULKAN_SDK\Lib\vulkan-1)</AdditionalLibraryDirectories>
@@ -204,6 +219,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)code;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>dodopch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

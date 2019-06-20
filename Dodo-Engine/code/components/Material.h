@@ -1,4 +1,5 @@
 #pragma once
+#include "dodopch.h"
 #include "environment/Error.h"
 #include "common/DodoTypes.h"
 #include "ECS.h"
@@ -84,9 +85,9 @@ namespace Dodo
 
 			struct UniformBufferObject
 			{
-				Matrix4x4 model;
-				Matrix4x4 View;
-				Matrix4x4 projection;
+				Math::Matrix4x4 model;
+				Math::Matrix4x4 View;
+				Math::Matrix4x4 projection;
 			};
 
 			CMaterial(std::shared_ptr<VKIntegration> _integration, ShaderInfo _shaderInfo)
@@ -118,6 +119,7 @@ namespace Dodo
 			virtual void Finalize() { }			
 			virtual void Update() { }
 			virtual DodoError Commit() { return DODO_OK; }	
+
 			
 
 			// Getter / Setter
