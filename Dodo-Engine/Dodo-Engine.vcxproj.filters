@@ -45,6 +45,18 @@
     <ClCompile Include="code\dodopch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\entity\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\components\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\components\Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\components\Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\environment\Window.h">
@@ -242,9 +254,18 @@
     <ClInclude Include="code\dodopch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="code\entity\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\components\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\default.frag" />
     <None Include="shaders\default.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="ext\assimp\lib\assimp-vc140-mt.lib" />
   </ItemGroup>
 </Project>

@@ -37,6 +37,6 @@ void Dodo::Entity::CEntityHandler::Refresh()
 void Dodo::Entity::CEntityHandler::AddEntity(Dodo::Entity::CEntity *_ent)
 {
 	std::shared_ptr<Dodo::Entity::CEntity> uPtr{ _ent };
-	m_vEntities.emplace_back(std::move(uPtr));
+	m_vEntities.push_back(uPtr);
 	_ent->SetID(reinterpret_cast<size_t>(_ent));
 }

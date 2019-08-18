@@ -19,6 +19,8 @@ namespace Dodo::Engine
 		// vulkan init
 		m_pVulkanIntegration = std::make_shared<Rendering::VKIntegration>();
 		VkResult vulkanResult = m_pVulkanIntegration->CreateInstance();
+		auto limits = m_pVulkanIntegration->GetPhysDevLimits();
+
 		CError::CheckError<VkResult>(vulkanResult);
 
 		// creating window surface to draw on
@@ -27,32 +29,44 @@ namespace Dodo::Engine
 
 		m_pVulkanIntegration->CreateLogicalDevice(m_pWindow->GetSurface());
 
+		m_pCamera = std::make_shared<Entity::CCamera>();
+		m_pCamera->GetComponent<Components::CTransform>()->setPosition(Math::Vector3f(15.0f, -15.0f, 0.0f));
+		m_pCamera->GetComponent<Components::CTransform>()->setPosition(Math::Vector3f(0.0f, 1.0f, 0.0f));
+		//m_pCamera->GetComponent<Components::CTransform>()->SetParent(nullptr);
+		m_pCamera->setPerspective(60.0f, m_v2WindowDimensions.x / m_v2WindowDimensions.y, 0.1f, 256.0f);	// TODO: use current swap extent for aspect ratio
+		m_pCamera->Update();
+
 		Components::CMaterial::ShaderInfo shaderInfo;
 		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
 		shaderInfo.fragmentShaderFileName = "shaders/default.frag.spv";
 
 		std::shared_ptr<Entity::CEntity> ent1 = std::make_shared<Entity::CEntity>();
 		std::shared_ptr<Entity::CEntity> ent2 = std::make_shared<Entity::CEntity>();
-		//std::shared_ptr<Entity::TestEnt> testEnt = std::make_shared<Entity::TestEnt>();
 		
+		std::shared_ptr<Components::CMesh> mesh1 = ent1->AddComponent<Components::CMesh>();
+		std::shared_ptr<Components::CMesh> mesh2 = ent2->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMaterial> mat1 = ent1->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		mat1->SetTexture("resources/textures/Grass.jpg");
 		std::shared_ptr<Components::CMaterial> mat2 = ent2->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		mat2->SetTexture("resources/textures/pepe_text.png");
+		auto transform = ent2->AddComponent<Components::CTransform>();
+		transform->setPosition(Math::Vector3f(0.0f, 0.0f, 0.0f));
 
 		std::vector<Vertex> vertices =
 		{
-			{{0.3f, -0.85f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f},	 {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.9f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f},	 {0.0f, 0.0f, 1.0f}}
+			{{-0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f},	 {0.0f, 0.0f, 1.0f}}
 		};
 
-		mat2->m_vertices = vertices;
+		mesh2->CreateMeshFromFile("resources/models/pepeWithNormals.obj");
 
 		std::vector<std::shared_ptr<Dodo::Entity::CEntity>> entities = Entity::CEntityHandler::GetEntities();
-		std::vector<std::shared_ptr<Components::CMaterial>> materials = { mat1, mat2 };
-
+		std::vector<std::shared_ptr<Components::CMaterial>> materials = {mat1 , mat2 };
+		std::vector<std::shared_ptr<Components::CMesh>> meshes = { mesh1, mesh2 };
 
 		// renderer init
-		m_pRenderer = std::make_shared<Rendering::CRenderer>(materials);
+		m_pRenderer = std::make_shared<Rendering::CRenderer>(meshes, materials, m_pCamera, entities);
 		m_pRenderer->Initialize(m_pVulkanIntegration, m_pWindow);
 
 		CLog::Message("======== Engine Initialized! ========");
@@ -98,6 +112,7 @@ namespace Dodo::Engine
 
 	DodoError CEngine::Update()
 	{
+		m_pCamera->Update();
 		Entity::CEntityHandler::Update();
 
 		return DodoError::DODO_OK;
@@ -105,6 +120,6 @@ namespace Dodo::Engine
 
 	DodoError CEngine::Finalize()
 	{
-		return DodoError();
+		return DodoError::DODO_OK;
 	}
 }

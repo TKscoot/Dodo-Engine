@@ -1,6 +1,7 @@
 #pragma once
 #include "dodopch.h"
 #include "components/ECS.h"
+#include "components/Transform.h"
 
 
 namespace Dodo
@@ -33,31 +34,68 @@ namespace Dodo
 				return m_bitComponentBitSet[Components::getComponentTypeID<T>];
 			}
 
+			//template<typename T, typename... TArgs>
+			//std::shared_ptr<T> AddComponent(TArgs&&... _args)
+			//{
+			//	static_assert(std::is_base_of_v<Components::CComponent, T>,
+			//		"Invalid type T. T is not a component");
+			//	T* c(new T(std::forward<TArgs>(_args)...));
+			//	c->entity = this;
+			//	//std::shared_ptr<Components::CComponent> sPtr{ c };
+			//
+			//	c->Initialize();
+			//	std::shared_ptr<T> tPtr{ c };
+			//	m_vecComponents.emplace_back(std::move(tPtr));
+			//
+			//	m_arrComponentArray[Components::getComponentTypeID<T>()] = c;
+			//	m_bitComponentBitSet[Components::getComponentTypeID<T>()] = true;
+			//
+			//	return tPtr;
+			//}
+
 			template<typename T, typename... TArgs>
 			std::shared_ptr<T> AddComponent(TArgs&&... _args)
 			{
 				static_assert(std::is_base_of_v<Components::CComponent, T>,
 					"Invalid type T. T is not a component");
 				T* c(new T(std::forward<TArgs>(_args)...));
-				c->entity = this;
-				std::shared_ptr<Components::CComponent> sPtr{ c };
-				m_vecComponents.emplace_back(std::move(sPtr));
+				//std::shared_ptr<T> c(std::make_shared<T>(std::forward<TArgs>(_args)...));
+				std::shared_ptr<T> sPtr{ c };
+				//sPtr->entity = this;
+				//std::shared_ptr<Components::CComponent> sPtr{ c };
 
-				m_arrComponentArray[Components::getComponentTypeID<T>()] = c;
-				m_bitComponentBitSet[Components::getComponentTypeID<T>()] = true;
+				sPtr->Initialize();
+				//std::shared_ptr<T> tPtr{ c };
+				//m_vecComponents.emplace_back(std::move(tPtr));
+				//m_vecComponents.push_back(c);
+				m_components[&typeid(*sPtr)] = sPtr;
+				m_components[&typeid(*sPtr)]->entity = this;
 
-				c->Initialize();
-				std::shared_ptr<T> tPtr{ c };
+				//m_arrComponentArray[Components::getComponentTypeID<T>()] = c;
+				//m_bitComponentBitSet[Components::getComponentTypeID<T>()] = true;
 
-				return tPtr;
+
+				return sPtr;
 			}
 
 			template<typename T>
-			T* GetComponent() const
+			std::shared_ptr<T> GetComponent()
 			{
-				auto ptr(m_arrComponentArray[Components::getComponentTypeID<T>()]);
+				//auto ptr(m_arrComponentArray[Components::getComponentTypeID<T>()]);
+				//return static_cast<T*>(ptr);;
 				
-				return static_cast<T*>(ptr);
+				if (m_components.count(&typeid(T)) != 0)
+				{
+					auto c = std::dynamic_pointer_cast<T>(m_components[&typeid(T)]);
+
+					return c;
+
+					//return static_cast<T*>();
+				}
+				else
+				{
+					return nullptr;
+				}
 			}
 
 			bool isActive() const { return m_bActive; }
@@ -71,7 +109,8 @@ namespace Dodo
 			bool m_bActive = true;
 			std::string m_sName;
 
-			std::vector<std::shared_ptr<Components::CComponent>> m_vecComponents;
+			std::unordered_map<const std::type_info*, std::shared_ptr<Components::CComponent>> m_components;
+			std::vector<Components::CComponent*> m_vecComponents = {};
 			Components::ComponentArray  m_arrComponentArray;
 			Components::ComponentBitSet m_bitComponentBitSet;
 		};

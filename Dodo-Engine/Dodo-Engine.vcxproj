@@ -19,6 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\components\Material.cpp" />
+    <ClCompile Include="code\components\Mesh.cpp" />
+    <ClCompile Include="code\components\Transform.cpp" />
+    <ClCompile Include="code\entity\Camera.cpp" />
     <ClCompile Include="code\dodopch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">dodopch.h</PrecompiledHeaderFile>
@@ -29,8 +33,8 @@
     <ClCompile Include="code\entity\Entity.cpp" />
     <ClCompile Include="code\environment\Error.cpp" />
     <ClCompile Include="code\main.cpp">
-      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessToFile>
-      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreprocessToFile>
     </ClCompile>
     <ClCompile Include="code\environment\Window.cpp" />
     <ClCompile Include="code\engine\Engine.cpp" />
@@ -39,6 +43,8 @@
     <ClCompile Include="code\entity\EntityHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="code\components\Mesh.h" />
+    <ClInclude Include="code\entity\Camera.h" />
     <ClInclude Include="code\dodopch.h" />
     <ClInclude Include="code\common\DodoTypes.h" />
     <ClInclude Include="code\common\VKHelpers.h" />
@@ -109,6 +115,9 @@
     <None Include="shaders\default.frag" />
     <None Include="shaders\default.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="ext\assimp\lib\assimp-vc140-mt.lib" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{33B508C5-BEA6-42B9-9C21-1151BEEC12CF}</ProjectGuid>
@@ -162,11 +171,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
-    <IncludePath>$(ProjectDir)ext;$(ProjectDir)code;D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\include;D:\Development\Vulkan\glm;$(VULKAN_SDK)\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)ext;$(ProjectDir)ext\assimp\include;$(ProjectDir)code;D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\include;D:\Development\Vulkan\glm;$(VULKAN_SDK)\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
-    <IncludePath>$(ProjectDir)ext;$(ProjectDir)code;D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\include;D:\Development\Vulkan\glm;$(VULKAN_SDK)\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)ext;$(ProjectDir)ext\assimp\include;$(ProjectDir)code;D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\include;D:\Development\Vulkan\glm;$(VULKAN_SDK)\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

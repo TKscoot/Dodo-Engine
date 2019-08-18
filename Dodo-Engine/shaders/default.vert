@@ -15,10 +15,20 @@ layout(location = 2) in vec3 inTangent;
 layout(location = 3) in vec2 inTexcoords;
 layout(location = 4) in vec3 inColor;
 
-layout(location = 0) out vec3 fragColor;
+layout(location = 0) out vec3 fragNormalInterp;
+layout(location = 1) out vec3 fragVertPos;
+layout(location = 2) out vec2 fragTexCoord;
 
 void main()
 {
-	gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);	// gibt evtl fehler wegen vec4
-    fragColor = inColor;
+	gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    //fragColor = inColor;
+	//fragTexCoord = inTexcoords;
+	mat4 modelView = ubo.view * ubo.model;
+
+	vec4 vertPos4 = ubo.view * ubo.model * vec4(inPosition, 1.0);
+    fragVertPos = vec3(vertPos4) / vertPos4.w;
+	mat4 normalMat = transpose(inverse(modelView));
+    fragNormalInterp = vec3(normalMat * vec4(inNormal, 0.0));
+	fragTexCoord = inTexcoords;
 }

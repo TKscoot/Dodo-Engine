@@ -4,8 +4,6 @@
 #define GLM_FORCE_RADIANS
 #define GLF_FORCE_DEPTH_ZERO_TO_ONE
 
-#include <map>
-#include <set>
 
 #include "environment/Log.h"
 #include "environment/Error.h"
@@ -36,6 +34,8 @@ namespace Dodo
 			VkResult CreateLogicalDevice(VkSurfaceKHR *_surface);
 
 			uint32_t FindMemoryType(uint32_t _typeFilter, VkMemoryPropertyFlags _properties);
+
+			VkPhysicalDeviceLimits GetPhysDevLimits();
 
 			// getter/setter
 			VkInstance		 const vulkanInstance() const { return m_vkInstance; };

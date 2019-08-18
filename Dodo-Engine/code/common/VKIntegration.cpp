@@ -171,6 +171,15 @@ uint32_t Dodo::Rendering::VKIntegration::FindMemoryType(uint32_t _typeFilter, Vk
 	return 1337;
 }
 
+VkPhysicalDeviceLimits Dodo::Rendering::VKIntegration::GetPhysDevLimits()
+{
+	VkPhysicalDeviceProperties physDevProperties;
+
+	vkGetPhysicalDeviceProperties(m_vkPhysicalDevice, &physDevProperties);
+
+	return physDevProperties.limits;
+}
+
 VkResult Dodo::Rendering::VKIntegration::SetupValidationLayers()
 {
 	VkResult result;

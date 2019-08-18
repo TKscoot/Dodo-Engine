@@ -6,6 +6,7 @@
 #include "components/Material.h"
 #include "common/DodoTypes.h"
 #include "entity/EntityHandler.h"
+#include "entity/Camera.h"
 
 namespace Dodo
 {
@@ -23,22 +24,39 @@ namespace Dodo
 			};
 
 		public:
-			CRenderer(std::vector<std::shared_ptr<Components::CMaterial>> _materials)
-				: m_pMaterials(_materials)
+			CRenderer(std::vector<std::shared_ptr<Components::CMesh>> _meshes, 
+				std::vector<std::shared_ptr<Components::CMaterial>> _materials, 
+				std::shared_ptr<Entity::CCamera> _camera,
+				std::vector<std::shared_ptr<Entity::CEntity>> _entities)
+				: //m_pMeshes(_meshes),
+				//m_pMaterials(_materials),
+				m_pCamera(_camera),
+				m_pEntities(_entities)
 			{
-
-				//// hier wird mat irgendwie nullptr
-				for (std::shared_ptr<Entity::CEntity> ent : Entity::CEntityHandler::GetEntities())
+				m_pMaterials.clear();
+				m_pMeshes.clear();
+				m_pTransforms.clear();
+				for (auto& ent : m_pEntities)
 				{
-					if (ent != nullptr)
+					std::shared_ptr<CMaterial> mat = std::shared_ptr<CMaterial>{ ent->GetComponent<CMaterial>() };
+					if (mat != nullptr)
 					{
-						std::shared_ptr<CMaterial> mat{ ent->GetComponent<CMaterial>() };
-						if (mat != nullptr)
-						{
-							m_pMaterials.emplace_back(mat);
-						}
+						m_pMaterials.push_back(mat);
+					}
+
+					std::shared_ptr<CMesh> mesh = std::shared_ptr<CMesh>{ ent->GetComponent<CMesh>() };
+					if (mesh != nullptr)
+					{
+						m_pMeshes.push_back(mesh);
+					}
+
+					std::shared_ptr<CTransform> transform = std::shared_ptr<CTransform>{ ent->GetComponent<CTransform>() };
+					if (transform != nullptr)
+					{
+						m_pTransforms.push_back(transform);
 					}
 				}
+				
 			}
 
 			DodoError Initialize(std::shared_ptr<VKIntegration> _integration, std::shared_ptr<CWindow> _window);
@@ -51,6 +69,13 @@ namespace Dodo
 				m_bFramebufferResized = true;
 			}
 
+			VkResult CreateBuffer(
+				VkDeviceSize _size,
+				VkBufferUsageFlags _usage,
+				VkMemoryPropertyFlags _properties,
+				VkBuffer &_buffer,
+				VkDeviceMemory &_bufferMemory);
+
 		private:
 
 			// Methods
@@ -61,20 +86,58 @@ namespace Dodo
 			VkResult CreateGraphicsPipeline();
 			VkResult CreateFramebuffers();
 			VkResult CreateCommandPool();
+			VkResult CreateDepthResources();
+			VkResult CreateTextureImages();
+			VkResult CreateTextureImageViews();
+			VkResult CreateTextureSampler();
 			VkResult CreateVertexBuffers();
 			VkResult CreateIndexBuffers();
 			VkResult CreateUniformBuffers();
 			VkResult CreateCommandBuffers();
 			VkResult CreateSyncObjects();
+			VkResult CreateDescriptorPool();
+			VkResult CreateDescriptorSets();
 
-			VkResult CreateBuffer(
-				VkDeviceSize _size, 
-				VkBufferUsageFlags _usage, 
-				VkMemoryPropertyFlags _properties, 
-				VkBuffer &_buffer, 
-				VkDeviceMemory &_bufferMemory);
 
-			VkResult CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
+			
+// Image stuff
+			VkResult CreateImage(
+				uint32_t width, 
+				uint32_t height, 
+				VkFormat format, 
+				VkImageTiling tiling,
+				VkImageUsageFlags usage, 
+				VkMemoryPropertyFlags properties, 
+				VkImage& image, 
+				VkDeviceMemory& imageMemory);
+
+			VkResult TransitionImageLayout(
+				VkImage image,
+				VkFormat format,
+				VkImageLayout oldLayout,
+				VkImageLayout newLayout);
+
+			VkResult CopyBufferToImage(
+				VkBuffer _buffer, 
+				VkImage _image, 
+				uint32_t _width, 
+				uint32_t _height);
+
+			VkImageView CreateImageView(
+				VkImage image, 
+				VkFormat format, 
+				VkImageAspectFlags aspectFlags);
+
+// Image stuff end
+
+			VkResult CopyBuffer(
+				VkBuffer _srcBuffer, 
+				VkBuffer _dstBuffer, 
+				VkDeviceSize _size);
+
+
+			VkCommandBuffer BeginSingleTimeCommands();
+			void EndSingleTimeCommands(VkCommandBuffer _buf);
 
 			VkResult UpdateUniformBuffer(uint32_t _currentImage);
 
@@ -86,6 +149,23 @@ namespace Dodo
 			VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& _availableFormats);
 			VkPresentModeKHR   ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> _availablePresentModes);
 			VkExtent2D		   ChooseSwapExtent(const VkSurfaceCapabilitiesKHR & _capabilities);
+			VkFormat		   FindSupportedFormat(
+									const std::vector<VkFormat>& _candidates, 
+									VkImageTiling _tiling, 
+									VkFormatFeatureFlags _features);
+			VkFormat FindDepthFormat()
+			{
+				return FindSupportedFormat(
+					{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+					VK_IMAGE_TILING_OPTIMAL,
+					VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+				);
+			}
+			bool HasStencilComponent(VkFormat _format)
+			{
+				return _format == VK_FORMAT_D32_SFLOAT_S8_UINT || _format == VK_FORMAT_D24_UNORM_S8_UINT;
+			}
+
 
 			struct SyncObjects
 			{
@@ -101,19 +181,30 @@ namespace Dodo
 			VkDescriptorSetLayout			   m_vkDescriptorSetLayout	 = VK_NULL_HANDLE;
 			VkPipelineLayout				   m_vkPipelineLayout	     = VK_NULL_HANDLE;
 			VkPipeline						   m_vkGraphicsPipeline	     = VK_NULL_HANDLE;
-			VkCommandPool					   m_vkCommandPool		     = VK_NULL_HANDLE;
+			VkCommandPool					   m_vkCommandPool			 = VK_NULL_HANDLE;
+			VkDescriptorPool				   m_vkDescriptorPool	     = VK_NULL_HANDLE;
+			VkImage							   m_vkDepthImage			 = VK_NULL_HANDLE;
+			VkDeviceMemory					   m_vkDepthImageMemory		 = VK_NULL_HANDLE;
+			VkImageView						   m_vkDepthImageView		 = VK_NULL_HANDLE;
 			std::vector<VkImage>			   m_vkSwapChainImages	     = {};
 			std::vector<VkImageView>		   m_vkSwapChainImageViews   = {};
 			std::vector<VkFramebuffer>		   m_vkSwapChainFramebuffers = {};
 			std::vector<VkCommandBuffer>	   m_vkCommandBuffers		 = {};
-			std::vector<CMaterial::DataBuffer> m_matDataBuffers			 = {};
+			std::vector<VkDescriptorSet>       m_vkDescriptorSets		 = {};
+			std::vector<CMesh::DataBuffer>	   m_matDataBuffers			 = {};
+			std::vector<VkBuffer>			   m_vkUniformBuffers		 = {};
+			std::vector<VkDeviceMemory>		   m_vkUniformBuffersMemory  = {};
 			VkFormat						   m_vkSwapChainImageFormat;
 			VkExtent2D						   m_vkSwapChainExtent;
 			SyncObjects						   m_sSyncObjects;
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
 			std::shared_ptr<CWindow>       m_pWindow;
+			std::vector<std::shared_ptr<Entity::CEntity>>		m_pEntities;
+			std::vector<std::shared_ptr<Components::CTransform>>     m_pTransforms;
+			std::vector<std::shared_ptr<Components::CMesh>>     m_pMeshes;
 			std::vector<std::shared_ptr<Components::CMaterial>> m_pMaterials;
+			std::shared_ptr<Entity::CCamera> m_pCamera;
 
 			uint32_t	   m_iCurrentFrame      = 0;
 			const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

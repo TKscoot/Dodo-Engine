@@ -1,8 +1,11 @@
 #pragma once
 #include "dodopch.h"
+#include "common/VKHelpers.h"
 #include "environment/Error.h"
 #include "common/DodoTypes.h"
 #include "ECS.h"
+#include "Mesh.h"
+#include <stb/stb_image.h>
 
 namespace Dodo
 {
@@ -55,6 +58,7 @@ namespace Dodo
 				return attributeDescriptions;
 			}
 
+
 			struct ShaderInfo
 			{
 				std::string vertexShaderFileName;
@@ -69,19 +73,7 @@ namespace Dodo
 				VkPipelineShaderStageCreateInfo fragShaderStage;
 			};
 
-			struct DataBuffer
-			{
-				// Vertex buffer
-				VkBuffer vertexBuffer;
-				VkDeviceMemory vertexBufferMemory;
 
-				// Index buffer
-				VkBuffer indexBuffer;
-				VkDeviceMemory indexBufferMemory;
-
-				VkBuffer uniformBuffer;
-				VkDeviceMemory uniformBufferMemory;
-			};
 
 			struct UniformBufferObject
 			{
@@ -90,10 +82,37 @@ namespace Dodo
 				Math::Matrix4x4 projection;
 			};
 
-			CMaterial(std::shared_ptr<VKIntegration> _integration, ShaderInfo _shaderInfo)
+			struct TextureData
 			{
-				VkShaderModule vertShaderModule = VKHelper::CreateShaderModule(_integration, _shaderInfo.vertexShaderFileName);
-				VkShaderModule fragShaderModule = VKHelper::CreateShaderModule(_integration, _shaderInfo.fragmentShaderFileName);
+				struct TextureImage
+				{
+					VkImage		   textureImage		  = VK_NULL_HANDLE;
+					VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+					VkImageView	   textureImageView   = VK_NULL_HANDLE;
+					VkSampler	   textureSampler	  = VK_NULL_HANDLE;
+				};
+
+				std::string  filename     = "";
+				int			 texWidth	  = 0;
+				int			 texHeight    = 0;
+				int			 texChannels  = 0;
+				stbi_uc*	 pixels		  = nullptr;
+				TextureImage textureImage = {};
+
+			};
+
+			CMaterial(std::shared_ptr<VKIntegration> _integration, ShaderInfo _shaderInfo)
+				: m_pIntegration(_integration),
+				m_shaderInfo(_shaderInfo)
+			{
+				m_texture.filename = std::string();
+			}
+
+			DodoError CreateShaders()
+			{
+				// ShaderModules im renderer oder so erstellen, sonst braucht man hier VKIntegration...
+				VkShaderModule vertShaderModule = Dodo::Rendering::VKHelper::CreateShaderModule(m_pIntegration, m_shaderInfo.vertexShaderFileName);
+				VkShaderModule fragShaderModule = Dodo::Rendering::VKHelper::CreateShaderModule(m_pIntegration, m_shaderInfo.fragmentShaderFileName);
 
 				VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
 				vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -110,7 +129,11 @@ namespace Dodo
 				//VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 				m_shaders.vertShaderStage = vertShaderStageInfo;
 				m_shaders.fragShaderStage = fragShaderStageInfo;
+
+				return DodoError::DODO_OK;
 			}
+
+			DodoError LoadTexture();
 
 			virtual ~CMaterial() = default;
 
@@ -124,24 +147,19 @@ namespace Dodo
 
 			// Getter / Setter
 			Shaders const shaders() const { return m_shaders; }
-			const std::vector<Vertex> const vertices() { return m_vertices; }
-
-			std::vector<Vertex> m_vertices = {
-				{{-0.5f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-				{{0.5f, -0.5f , 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-				{{0.5f, 0.5f  , 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-				{{-0.5f, 0.5f , 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}}
-			};
-
-			std::vector<uint32_t> indices = {
-				0, 1, 2, 2, 3, 0
-			};
-
-			DataBuffer m_dataBuffers;
+			TextureData& const textureData() { return m_texture; }
+			void SetTexture(std::string _filename) 
+			{ 
+				m_texture.filename = _filename;
+				LoadTexture();
+			}
 
 		protected:
-			Shaders m_shaders;
+			Shaders     m_shaders	 = {};
+			ShaderInfo  m_shaderInfo = {};
+			TextureData m_texture	 = {};
 
+			std::shared_ptr<VKIntegration> m_pIntegration;
 		};
 
 		class TestMaterial : public CMaterial

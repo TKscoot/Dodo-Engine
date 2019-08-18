@@ -7,6 +7,7 @@ namespace Dodo
 	namespace Math
 	{
 		typedef glm::vec3 Vector3f;
+		typedef glm::vec4 Vector4f;
 		typedef glm::vec2 Vector2f;
 		typedef glm::mat4 Matrix4x4;
 
@@ -18,9 +19,12 @@ namespace Dodo
 		Math::Vector3f normal;
 		Math::Vector3f tangent;
 		Math::Vector2f texcoords;
-
+		
 		Math::Vector3f color;
 	};
+
+
+
 }
 
 

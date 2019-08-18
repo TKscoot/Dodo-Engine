@@ -38,6 +38,7 @@ namespace Dodo
 
 				return shaderModule;
 			}
+
 		};
 	}
 }

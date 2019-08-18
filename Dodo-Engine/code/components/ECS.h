@@ -43,7 +43,7 @@ namespace Dodo
 		class CComponent
 		{
 		public:
-			Entity::CEntity* entity;
+			Entity::CEntity* entity = nullptr;
 
 			virtual Dodo::Environment::DodoError Initialize() { return Dodo::Environment::DodoError::DODO_OK; }
 			virtual void Update() {}
