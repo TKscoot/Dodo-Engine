@@ -50,7 +50,7 @@ namespace Dodo
 			virtual void Finalize() {}
 
 
-			virtual ~CComponent() {}
+			//virtual ~CComponent() {}
 		};
 	}
 

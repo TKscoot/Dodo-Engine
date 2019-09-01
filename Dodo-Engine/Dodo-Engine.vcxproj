@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\components\ECS.cpp" />
     <ClCompile Include="code\components\Material.cpp" />
     <ClCompile Include="code\components\Mesh.cpp" />
     <ClCompile Include="code\components\Transform.cpp" />
@@ -32,15 +33,18 @@
     <ClCompile Include="code\common\VKIntegration.cpp" />
     <ClCompile Include="code\entity\Entity.cpp" />
     <ClCompile Include="code\environment\Error.cpp" />
-    <ClCompile Include="code\main.cpp">
-      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PreprocessToFile>
-      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreprocessToFile>
-    </ClCompile>
+    <ClCompile Include="code\environment\Input.cpp" />
     <ClCompile Include="code\environment\Window.cpp" />
     <ClCompile Include="code\engine\Engine.cpp" />
+    <ClCompile Include="code\main.cpp" />
+    <ClCompile Include="code\renderer\GUI.cpp" />
     <ClCompile Include="code\renderer\Renderer.cpp" />
     <ClCompile Include="code\environment\Log.cpp" />
     <ClCompile Include="code\entity\EntityHandler.cpp" />
+    <ClCompile Include="ext\imgui\imgui.cpp" />
+    <ClCompile Include="ext\imgui\imgui_demo.cpp" />
+    <ClCompile Include="ext\imgui\imgui_draw.cpp" />
+    <ClCompile Include="ext\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\components\Mesh.h" />
@@ -52,11 +56,16 @@
     <ClInclude Include="code\components\ECS.h" />
     <ClInclude Include="code\components\Transform.h" />
     <ClInclude Include="code\entity\Entity.h" />
+    <ClInclude Include="code\environment\Input.h" />
     <ClInclude Include="code\environment\Window.h" />
     <ClInclude Include="code\engine\Engine.h" />
     <ClInclude Include="code\environment\Error.h" />
     <ClInclude Include="code\components\Material.h" />
+    <ClInclude Include="code\renderer\GUI.h" />
     <ClInclude Include="code\renderer\Renderer.h" />
+    <ClInclude Include="code\renderer\VulkanBuffer.h" />
+    <ClInclude Include="code\renderer\VulkanInitializers.h" />
+    <ClInclude Include="ext\imgui\imgui.h" />
     <ClInclude Include="ext\spdlog\async.h" />
     <ClInclude Include="ext\spdlog\async_logger.h" />
     <ClInclude Include="ext\spdlog\common.h" />
@@ -114,6 +123,8 @@
   <ItemGroup>
     <None Include="shaders\default.frag" />
     <None Include="shaders\default.vert" />
+    <None Include="shaders\ui.frag" />
+    <None Include="shaders\ui.vert" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ext\assimp\lib\assimp-vc140-mt.lib" />
@@ -198,7 +209,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN32\lib-vc2015;$(VULKAN_SDK\Lib\vulkan-1)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Link>
       <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN64\lib-vc2015;$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
@@ -235,7 +246,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>D:\Development\Vulkan\glfw-3.2.1.bin.WIN64\lib-vc2015;$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

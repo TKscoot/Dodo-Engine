@@ -42,6 +42,7 @@ namespace Dodo
 
 			return DodoError::DODO_OK;
 		}
+
 		DodoError CWindow::CreateWindowSurface(VkInstance _instance)
 		{
 			VkResult result = glfwCreateWindowSurface(_instance, m_pWindow, nullptr, &m_vkSurface);
@@ -53,6 +54,11 @@ namespace Dodo
 			}
 
 			return DODO_OK;
+		}
+
+		void CWindow::Finalize()
+		{
+			glfwDestroyWindow(m_pWindow);
 		}
 	}
 }

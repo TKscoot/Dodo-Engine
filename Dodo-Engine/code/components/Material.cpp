@@ -20,5 +20,15 @@ Dodo::Environment::DodoError Dodo::Components::CMaterial::LoadTexture()
 	m_texture.texChannels = texChannels;
 	m_texture.pixels	  = pixels;
 
+
 	return DodoError::DODO_OK;
+}
+
+void Dodo::Components::CMaterial::Finalize()
+{
+	vkDestroySampler(m_pIntegration->device(), m_texture.textureImage.textureSampler, nullptr);
+	vkDestroyImageView(m_pIntegration->device(), m_texture.textureImage.textureImageView, nullptr);
+
+	vkDestroyImage(m_pIntegration->device(), m_texture.textureImage.textureImage, nullptr);
+	vkFreeMemory(m_pIntegration->device(), m_texture.textureImage.textureImageMemory, nullptr);
 }

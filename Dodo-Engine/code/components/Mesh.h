@@ -50,6 +50,8 @@ namespace Dodo
 
 			DodoError CreateMeshFromFile(std::string _filename);
 
+			void Finalize();
+
 			DataBuffer m_dataBuffers;
 			DepthData  m_depthData;
 		private:

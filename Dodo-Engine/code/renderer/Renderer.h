@@ -7,6 +7,7 @@
 #include "common/DodoTypes.h"
 #include "entity/EntityHandler.h"
 #include "entity/Camera.h"
+#include "GUI.h"
 
 namespace Dodo
 {
@@ -36,7 +37,7 @@ namespace Dodo
 				m_pMaterials.clear();
 				m_pMeshes.clear();
 				m_pTransforms.clear();
-				for (auto& ent : m_pEntities)
+				for (auto& ent : Entity::CEntityHandler::GetEntities())
 				{
 					std::shared_ptr<CMaterial> mat = std::shared_ptr<CMaterial>{ ent->GetComponent<CMaterial>() };
 					if (mat != nullptr)
@@ -60,7 +61,7 @@ namespace Dodo
 			}
 
 			DodoError Initialize(std::shared_ptr<VKIntegration> _integration, std::shared_ptr<CWindow> _window);
-			DodoError DrawFrame();
+			DodoError DrawFrame(double deltaTime);
 
 			DodoError Finalize();
 
@@ -75,6 +76,13 @@ namespace Dodo
 				VkMemoryPropertyFlags _properties,
 				VkBuffer &_buffer,
 				VkDeviceMemory &_bufferMemory);
+
+			// Getter & Setter
+			VkRenderPass renderPass() { return m_vkRenderPass; }
+			double const deltaTime() const { return m_dDeltaTime; }
+
+			VkResult UpdateCommandBuffers();
+
 
 		private:
 
@@ -97,7 +105,6 @@ namespace Dodo
 			VkResult CreateSyncObjects();
 			VkResult CreateDescriptorPool();
 			VkResult CreateDescriptorSets();
-
 
 			
 // Image stuff
@@ -190,6 +197,10 @@ namespace Dodo
 			std::vector<VkImageView>		   m_vkSwapChainImageViews   = {};
 			std::vector<VkFramebuffer>		   m_vkSwapChainFramebuffers = {};
 			std::vector<VkCommandBuffer>	   m_vkCommandBuffers		 = {};
+
+			// PRIMARY CB
+			VkCommandBuffer m_vkPrimaryCB = VK_NULL_HANDLE;
+
 			std::vector<VkDescriptorSet>       m_vkDescriptorSets		 = {};
 			std::vector<CMesh::DataBuffer>	   m_matDataBuffers			 = {};
 			std::vector<VkBuffer>			   m_vkUniformBuffers		 = {};
@@ -206,8 +217,11 @@ namespace Dodo
 			std::vector<std::shared_ptr<Components::CMaterial>> m_pMaterials;
 			std::shared_ptr<Entity::CCamera> m_pCamera;
 
+			std::shared_ptr<GUI> m_pGui;
+
 			uint32_t	   m_iCurrentFrame      = 0;
 			const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+			double m_dDeltaTime;
 
 			static bool m_bFramebufferResized;
 

@@ -115,3 +115,8 @@ Dodo::Environment::DodoError Dodo::Components::CMesh::CreateMeshFromFile(std::st
 
 	return DodoError::DODO_OK;
 }
+
+void Dodo::Components::CMesh::Finalize()
+{
+
+}

@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "components/ECS.h"
 #include "components/Transform.h"
+#include "environment/Input.h"
 
 
 namespace Dodo
@@ -38,26 +39,10 @@ namespace Dodo
 
 		private:
 
-			void UpdateViewMatrix()
-			{
-				m_transform->setPosition(Math::Vector3f(20.0f, 0.0f, 4.0f));
-				m_transform->setRotationY(5.0f);
-				glm::mat4 rotM = glm::mat4(1.0f);
-				glm::mat4 transM;
+			void UpdateViewMatrix();
 
-				rotM = glm::rotate(rotM, glm::radians(m_transform->getRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
-				rotM = glm::rotate(rotM, glm::radians(m_transform->getRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
-				rotM = glm::rotate(rotM, glm::radians(m_transform->getRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
+			void HandleMouseMove();
 
-				transM = glm::translate(glm::mat4(1.0f), m_transform->getPosition());
-
-				
-				//m_viewMatrix = /* rotM * */ transM;
-				//m_viewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-				m_viewMatrix = glm::lookAt(m_transform->getPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * rotM;
-
-				m_updated = true;
-			};
 
 
 			float m_fov;
@@ -70,6 +55,7 @@ namespace Dodo
 			Math::Matrix4x4 m_projectionMatrix;
 
 			std::shared_ptr<Components::CTransform> m_transform;
+			Math::Vector2f m_mousePos;
 			//Components::CTransform* m_transform;
 		};
 

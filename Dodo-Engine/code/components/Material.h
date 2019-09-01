@@ -135,11 +135,11 @@ namespace Dodo
 
 			DodoError LoadTexture();
 
-			virtual ~CMaterial() = default;
+			//virtual ~CMaterial() = default;
 
 			virtual DodoError Create() { return DODO_OK; }
 			virtual DodoError Initialize() { return DODO_OK; }
-			virtual void Finalize() { }			
+			virtual void Finalize();
 			virtual void Update() { }
 			virtual DodoError Commit() { return DODO_OK; }	
 

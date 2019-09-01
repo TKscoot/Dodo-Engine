@@ -60,6 +60,10 @@ namespace Dodo
 				invalidate();
 			}
 			inline void setRotation(const Vector3f& vec) { m_rotation = Vector4f(vec, 1.0f); invalidate(); }
+			inline void rotate(const Vector3f& delta)
+			{
+				m_rotation += delta; invalidate();
+			}
 		
 			inline void setScaleX(const float& factor) { m_scale.x = factor; invalidate(); }
 			inline void setScaleY(const float& factor) { m_scale.y = factor; invalidate(); }
@@ -83,16 +87,17 @@ namespace Dodo
 			inline void invalidate()
 			{
 				//m_rotationMat = glm::eulerAngleXYZ(m_rotation.x, m_rotation.y, m_rotation.z);
+				Matrix4x4 rot   = Matrix4x4(1.0);
+				Matrix4x4 trans = Matrix4x4(1.0);
+				Matrix4x4 scale = Matrix4x4(1.0);
+				rot   = glm::rotate(   rot,   glm::radians(m_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+				rot	  = glm::rotate(   rot,   glm::radians(m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+				rot	  = glm::rotate(   rot,   glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+				trans = glm::translate(trans, m_translation);
+				scale = glm::scale(    scale, m_scale);
+				
+				m_composed = scale * rot * trans;
 
-				m_composed = glm::rotate(m_composed, m_rotation.x, m_right);
-				m_composed = glm::rotate(m_composed, m_rotation.y, m_up);
-				m_composed = glm::rotate(m_composed, m_rotation.z, m_direction);
-				m_composed = glm::translate(m_composed, m_translation);
-				m_composed = glm::scale(m_composed, m_scale);
-				//m_composed = m_rotationMat * m_composed;			// BUGGY!!!
-				//m_composed = glm::rotate(m_composed, )
-		
-				m_transformed = m_composed * m_transformed;
 			}
 
 			inline void Update() override {}
@@ -109,8 +114,6 @@ namespace Dodo
 			Vector3f  m_up;
 					  
 			Matrix4x4 m_composed = Matrix4x4(1.0f);
-		
-			Vector4f m_transformed = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
 		};
 
 

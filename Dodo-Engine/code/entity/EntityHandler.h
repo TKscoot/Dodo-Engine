@@ -16,10 +16,12 @@ namespace Dodo
 			static void Refresh();
 
 			static void AddEntity(Dodo::Entity::CEntity *_ent);
-			static std::vector<std::shared_ptr<Dodo::Entity::CEntity>> GetEntities() { return m_vEntities; }
+			//static std::vector<std::shared_ptr<Dodo::Entity::CEntity>> GetEntities() { return m_vEntities; }
+			static std::vector<Dodo::Entity::CEntity*> GetEntities() { return m_vEntities; }
 
 		private:
-			static std::vector<std::shared_ptr<Dodo::Entity::CEntity>> m_vEntities;
+			//static std::vector<std::shared_ptr<Dodo::Entity::CEntity>> m_vEntities;
+			static std::vector<Dodo::Entity::CEntity*> m_vEntities;
 		};
 	}
 }

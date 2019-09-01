@@ -12,9 +12,11 @@ int main()
 {
 	std::unique_ptr<CEngine> engine = std::make_unique<CEngine>();
 	engine->Initialize();
+
 	engine->Run();
 
 	engine->Finalize();
+	engine.release();
 	 
 	return 0;
 }

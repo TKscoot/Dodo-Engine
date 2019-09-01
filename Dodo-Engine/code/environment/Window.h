@@ -27,6 +27,8 @@ namespace Dodo
 
 			static void framebufferResizeCallback(GLFWwindow* _window, int _width, int _height);
 
+			void Finalize();
+
 		private:
 			const GLFWvidmode *m_pVideoMode = nullptr;
 			GLFWmonitor       *m_pMonitor   = nullptr;

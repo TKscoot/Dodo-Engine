@@ -45,7 +45,6 @@ void main()
 	vec3 colorLinear = ambientColor + diffuseColor.rgb * lambertian * lightColor * lightPower / dist + 
 					   specColor * specular * lightColor * lightPower / dist;
 
-	//vec3 colorGammaCorrected = pow(colorLinear, vec3(1.0/screenGamma));
 	vec3 colorGammaCorrected = pow(colorLinear, vec3(0.4545));
 
 	outColor = vec4(colorGammaCorrected, 1.0);

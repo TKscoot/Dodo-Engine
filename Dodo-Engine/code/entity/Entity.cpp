@@ -6,3 +6,9 @@ Dodo::Entity::CEntity::CEntity()
 {
 	CEntityHandler::AddEntity(this);
 }
+
+Dodo::Entity::CEntity::CEntity(std::string _name)
+{
+	m_sName = _name;
+	CEntityHandler::AddEntity(this);
+}

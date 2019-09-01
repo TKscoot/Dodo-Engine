@@ -37,14 +37,16 @@ namespace Dodo
 
 			VkPhysicalDeviceLimits GetPhysDevLimits();
 
-			// getter/setter
-			VkInstance		 const vulkanInstance() const { return m_vkInstance; };
-			VkPhysicalDevice const physicalDevice() const { return m_vkPhysicalDevice; }
-			VkDevice		 const device()			const { return m_vkDevice; }
-			VkSurfaceKHR	 const surface()		const { return m_vkWindowSurface; }
-			QueueFamilies    const queueFamilies()  const { return m_queueFamilies; }
-			Queues			 const queues()			const { return m_queues; }
+			void Finalize();
 
+			// getter/setter
+			VkInstance				   const vulkanInstance()  const { return m_vkInstance; };
+			VkPhysicalDevice		   const physicalDevice()  const { return m_vkPhysicalDevice; }
+			VkDevice				   const device()		   const { return m_vkDevice; }
+			VkSurfaceKHR			   const surface()		   const { return m_vkWindowSurface; }
+			QueueFamilies			   const queueFamilies()   const { return m_queueFamilies; }
+			Queues					   const queues()		   const { return m_queues; }
+			VkPhysicalDeviceProperties const physDeviceProps() const { return m_vkDeviceProps; }
 
 
 		private:
@@ -84,14 +86,15 @@ namespace Dodo
 
 
 			// Vulkan Handles (evtl. in ein struct verpacken für übersicht?)
-			VkInstance				 m_vkInstance		= VK_NULL_HANDLE;
-			VkSurfaceKHR			 m_vkWindowSurface	= VK_NULL_HANDLE;
-			VkPhysicalDevice		 m_vkPhysicalDevice	= VK_NULL_HANDLE;
-			VkDevice				 m_vkDevice			= VK_NULL_HANDLE;
-			VkDebugReportCallbackEXT m_vkCallback		= VK_NULL_HANDLE;
-			VkPhysicalDeviceFeatures m_vkDeviceFeatures;
-			VkApplicationInfo		 m_vkAppInfo		= {};
-			VkInstanceCreateInfo	 m_vkInstanceInfo	= {};
+			VkInstance				   m_vkInstance		  = VK_NULL_HANDLE;
+			VkSurfaceKHR			   m_vkWindowSurface  = VK_NULL_HANDLE;
+			VkPhysicalDevice		   m_vkPhysicalDevice = VK_NULL_HANDLE;
+			VkDevice				   m_vkDevice		  = VK_NULL_HANDLE;
+			VkDebugReportCallbackEXT   m_vkCallback		  = VK_NULL_HANDLE;
+			VkPhysicalDeviceFeatures   m_vkDeviceFeatures = {};
+			VkPhysicalDeviceProperties m_vkDeviceProps    = {};
+			VkApplicationInfo		   m_vkAppInfo		  = {};
+			VkInstanceCreateInfo	   m_vkInstanceInfo	  = {};
 
 			std::vector<const char*> m_strExtensions;
 			const std::vector<const char*> m_strDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };

@@ -88,7 +88,19 @@ VkResult Dodo::Rendering::VKIntegration::ChoosePhysicalDevice()
 
 	m_vkPhysicalDevice = devices.rbegin()->second;
 
+	vkGetPhysicalDeviceProperties(m_vkPhysicalDevice, &m_vkDeviceProps);
+
+
 	return result;
+}
+
+void Dodo::Rendering::VKIntegration::Finalize()
+{
+	vkDestroyDevice(m_vkDevice, nullptr);
+
+	vkDestroySurfaceKHR(m_vkInstance, m_vkWindowSurface, nullptr);
+	vkDestroyInstance(m_vkInstance, nullptr);
+
 }
 
 bool Dodo::Rendering::VKIntegration::IsDeviceSuitable(VkPhysicalDevice _device)
