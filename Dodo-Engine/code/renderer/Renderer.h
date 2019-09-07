@@ -80,6 +80,7 @@ namespace Dodo
 			// Getter & Setter
 			VkRenderPass renderPass() { return m_vkRenderPass; }
 			double const deltaTime() const { return m_dDeltaTime; }
+			VkExtent2D const swapExtent() const { return m_vkSwapChainExtent; }
 
 			VkResult UpdateCommandBuffers();
 
@@ -146,7 +147,7 @@ namespace Dodo
 			VkCommandBuffer BeginSingleTimeCommands();
 			void EndSingleTimeCommands(VkCommandBuffer _buf);
 
-			VkResult UpdateUniformBuffer(uint32_t _currentImage);
+			VkResult UpdateUniformBuffer();
 
 			VkResult CleanupSwapChain();
 			VkResult RecreateSwapChain();
@@ -198,9 +199,6 @@ namespace Dodo
 			std::vector<VkFramebuffer>		   m_vkSwapChainFramebuffers = {};
 			std::vector<VkCommandBuffer>	   m_vkCommandBuffers		 = {};
 
-			// PRIMARY CB
-			VkCommandBuffer m_vkPrimaryCB = VK_NULL_HANDLE;
-
 			std::vector<VkDescriptorSet>       m_vkDescriptorSets		 = {};
 			std::vector<CMesh::DataBuffer>	   m_matDataBuffers			 = {};
 			std::vector<VkBuffer>			   m_vkUniformBuffers		 = {};
@@ -218,6 +216,7 @@ namespace Dodo
 			std::shared_ptr<Entity::CCamera> m_pCamera;
 
 			std::shared_ptr<GUI> m_pGui;
+			float m_fFrameTimeCounter = 0.0f;
 
 			uint32_t	   m_iCurrentFrame      = 0;
 			const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

@@ -73,13 +73,20 @@ namespace Dodo
 				VkPipelineShaderStageCreateInfo fragShaderStage;
 			};
 
-
-
 			struct UniformBufferObject
 			{
 				Math::Matrix4x4 model;
 				Math::Matrix4x4 View;
 				Math::Matrix4x4 projection;
+				
+				Math::Vector3f camPos;
+			};
+
+			struct PushConsts
+			{
+				float roughness = 0.2f;
+				float metallic = 0.5f;
+				float r, g, b = 1.0f;
 			};
 
 			struct TextureData
@@ -106,6 +113,7 @@ namespace Dodo
 				m_shaderInfo(_shaderInfo)
 			{
 				m_texture.filename = std::string();
+				SetTexture("resources/textures/default.png");
 			}
 
 			DodoError CreateShaders()
@@ -140,7 +148,7 @@ namespace Dodo
 			virtual DodoError Create() { return DODO_OK; }
 			virtual DodoError Initialize() { return DODO_OK; }
 			virtual void Finalize();
-			virtual void Update() { }
+			virtual void Update() {  }
 			virtual DodoError Commit() { return DODO_OK; }	
 
 			
@@ -154,10 +162,22 @@ namespace Dodo
 				LoadTexture();
 			}
 
+			PushConsts& const pushConstants() { return pushConsts; }
+			void setPushConstants(float roughness, float metallic, float r, float g, float b) 
+			{
+				pushConsts.roughness = roughness;
+				pushConsts.metallic = metallic;
+				pushConsts.r = r;
+				pushConsts.g = g;
+				pushConsts.b = b;
+			}
+
+
 		protected:
 			Shaders     m_shaders	 = {};
 			ShaderInfo  m_shaderInfo = {};
 			TextureData m_texture	 = {};
+			PushConsts  pushConsts   = {};
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
 		};

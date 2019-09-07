@@ -4,8 +4,9 @@
 
 Dodo::Entity::CCamera::CCamera()
 {
-	m_transform = AddComponent<Components::CTransform>();
-	m_transform->setPosition(Math::Vector3f(0.0f, 0.0f, -10.0f));
+	//m_transform = AddComponent<Components::CTransform>();
+	//m_transform->setPosition(Math::Vector3f(0.0f, 0.0f, -10.0f));
+	camSpeed = new float(0.1f);
 }
 
 
@@ -16,62 +17,58 @@ Dodo::Entity::CCamera::~CCamera()
 void Dodo::Entity::CCamera::Update()
 {
 	m_updated = false;
-	m_mousePos = Environment::CInput::GetMousePosition();
 
-	glm::vec3 camFront;
-	camFront.x = -cos(glm::radians(m_transform->getRotation().x)) * sin(glm::radians(m_transform->getRotation().y));
-	camFront.y =  sin(glm::radians(m_transform->getRotation().x));
-	camFront.z =  cos(glm::radians(m_transform->getRotation().x)) * cos(glm::radians(m_transform->getRotation().y));
-	camFront = glm::normalize(camFront);
+	//glm::vec3 camFront;
+	//camFront.x = -cos(glm::radians(m_transform->getRotation().x)) * sin(glm::radians(m_transform->getRotation().y));
+	//camFront.y =  sin(glm::radians(m_transform->getRotation().x));
+	//camFront.z =  cos(glm::radians(m_transform->getRotation().x)) * cos(glm::radians(m_transform->getRotation().y));
+	//camFront = glm::normalize(camFront);
 
 	UpdateViewMatrix();
 }
 
 void Dodo::Entity::CCamera::UpdateViewMatrix()
 {
-
+	float cameraSpeed = *camSpeed;
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_A))
 	{
-		m_transform->setPositionX(m_transform->getPosition().x + 0.01);
+		//m_transform->setPositionX(m_transform->getPosition().x + 0.01);
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	}
 	
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_D))
 	{
-		m_transform->setPositionX(m_transform->getPosition().x - 0.01);
+		//m_transform->setPositionX(m_transform->getPosition().x - 0.01);
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	}
 	
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_E))
 	{
-		m_transform->setPositionY(m_transform->getPosition().y + 0.01);
+		//m_transform->setPositionY(m_transform->getPosition().y + 0.01);
+		cameraPos.y += cameraSpeed * 1.0f;
 	}
 	
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_Q))
 	{
-		m_transform->setPositionY(m_transform->getPosition().y - 0.01);
+		cameraPos.y -= cameraSpeed * 1.0f;
+
 	}
 	
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_W))
 	{
-		m_transform->setPositionZ(m_transform->getPosition().z + 0.01);
+		cameraPos += cameraSpeed * cameraFront;
 	}
 	
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_S))
 	{
-		m_transform->setPositionZ(m_transform->getPosition().z - 0.01);
+		cameraPos -= cameraSpeed * cameraFront;
 	}
 
-	//HandleMouseMove();
-	
-	glm::mat4 rotM = glm::mat4(1.0f);
-	glm::mat4 transM;
+	HandleMouseMove();
 
-	rotM = glm::rotate(rotM, glm::radians(m_transform->getRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
-	rotM = glm::rotate(rotM, glm::radians(m_transform->getRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
-	rotM = glm::rotate(rotM, glm::radians(m_transform->getRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-	transM = glm::translate(glm::mat4(1.0f), m_transform->getPosition());
-
-	m_viewMatrix = rotM * transM;
 
 	m_updated = true;
 }
@@ -80,16 +77,34 @@ void Dodo::Entity::CCamera::HandleMouseMove()
 {
 	Math::Vector2f mousePos = Environment::CInput::GetMousePosition();
 
-	int32_t dx = (int32_t)m_mousePos.x - mousePos.x;
-	int32_t dy = mousePos.y - (int32_t)m_mousePos.y;
+	if (firstMouse)
+	{
+		m_lastMousePos.x = mousePos.x;
+		m_lastMousePos.y = mousePos.y;
+		firstMouse = false;
+	}
 
-	m_mousePos = mousePos;
-	Math::Vector3f rotation = m_transform->getRotation();
+	float xoffset = mousePos.x - m_lastMousePos.x;
+	float yoffset = m_lastMousePos.y - mousePos.y; // reversed since y-coordinates range from bottom to top
+	m_lastMousePos.x = mousePos.x;
+	m_lastMousePos.y = mousePos.y;
 
-	rotation.x += dy * 1.25f;
-	rotation.y -= dx * 1.25f;
+	float sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
 
-	m_transform->setRotation(rotation);
 
-	m_transform->rotate(Math::Vector3f(dy, -dx, 0.0f));
+	yaw   += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f)
+       pitch = 89.0f;
+    if(pitch < -89.0f)
+       pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
 }

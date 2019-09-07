@@ -13,9 +13,9 @@ namespace Dodo::Engine
 		m_pWindow = std::make_shared<CWindow>();
 		result = m_pWindow->Initialize();
 		CError::CheckError<DodoError>(result);
-		m_v2WindowDimensions.x = 800;
-		m_v2WindowDimensions.y = 600;
-		result = m_pWindow->CreateGLFWWindow(m_v2WindowDimensions, "Test");
+		m_v2WindowDimensions.x = 1280;
+		m_v2WindowDimensions.y = 720;
+		result = m_pWindow->CreateGLFWWindow(m_v2WindowDimensions, "Dodo Engine v0.1 alpha");
 		CError::CheckError<DodoError>(result);
 
 		// input init
@@ -39,7 +39,7 @@ namespace Dodo::Engine
 		//m_pCamera->GetComponent<Components::CTransform>()->setPosition(Math::Vector3f(15.0f, -15.0f, 0.0f));
 		//m_pCamera->GetComponent<Components::CTransform>()->setPosition(Math::Vector3f(0.0f, 1.0f, 0.0f));
 		//m_pCamera->GetComponent<Components::CTransform>()->SetParent(nullptr);
-		m_pCamera->setPerspective(60.0f, m_v2WindowDimensions.x / m_v2WindowDimensions.y, 0.1f, 256.0f);	// TODO: use current swap extent for aspect ratio
+		m_pCamera->setPerspective(60.0f, m_v2WindowDimensions.x / m_v2WindowDimensions.y, 0.001f, 2048.0f);	// TODO: use current swap extent for aspect ratio
 		m_pCamera->Update();
 
 
@@ -47,20 +47,36 @@ namespace Dodo::Engine
 		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
 		shaderInfo.fragmentShaderFileName = "shaders/default.frag.spv";
 
-		//std::shared_ptr<Entity::CEntity> ent1 = std::make_shared<Entity::CEntity>();
-		//std::shared_ptr<Entity::CEntity> ent2 = std::make_shared<Entity::CEntity>();
+		//std::shared_ptr<Entity::CEntity> boxEntity = std::make_shared<Entity::CEntity>();
+		//std::shared_ptr<Entity::CEntity> pepeEntity = std::make_shared<Entity::CEntity>();
 
-		Entity::CEntity* ent1 = new Entity::CEntity("Quad");
-		Entity::CEntity* ent2 = new Entity::CEntity("Pepe");
+		Entity::CEntity* boxEntity   = new Entity::CEntity("Quad");
+		Entity::CEntity* pepeEntity  = new Entity::CEntity("Pepe");
+		Entity::CEntity* floorEntity = new Entity::CEntity("Floor");
 		
-		std::shared_ptr<Components::CMesh> mesh1 = ent1->AddComponent<Components::CMesh>();
-		std::shared_ptr<Components::CMesh> mesh2 = ent2->AddComponent<Components::CMesh>();
-		std::shared_ptr<Components::CMaterial> mat1 = ent1->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		mat1->SetTexture("resources/textures/Grass.jpg");
-		std::shared_ptr<Components::CMaterial> mat2 = ent2->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		std::shared_ptr<Components::CMesh> mesh1 = boxEntity->AddComponent<Components::CMesh>();
+		std::shared_ptr<Components::CMesh> mesh2 = pepeEntity->AddComponent<Components::CMesh>();
+		std::shared_ptr<Components::CMesh> mesh3 = floorEntity->AddComponent<Components::CMesh>();
+		std::shared_ptr<Components::CMaterial> mat1 = boxEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		mat1->SetTexture("resources/textures/WoodBox/default.jpg");
+		std::shared_ptr<Components::CMaterial> mat2 = pepeEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
 		mat2->SetTexture("resources/textures/pepe_text.png");
-		auto transform = ent2->AddComponent<Components::CTransform>();
-		transform->setPosition(Math::Vector3f(3.0f, 0.0f, 0.0f));
+		std::shared_ptr<Components::CMaterial> mat3 = floorEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		mat3->SetTexture("resources/textures/Grass.jpg");
+
+		auto boxTrans = boxEntity->AddComponent<Components::CTransform>();
+		//boxTrans->setScale(Math::Vector3f(0.05f));
+		boxTrans->setPositionX(5.0f);
+		auto floorTrans = floorEntity->AddComponent<Components::CTransform>();
+		floorTrans->setPositionY(-0.3f);
+		floorTrans->setPositionX(20.0f);
+		floorTrans->setScaleX(20.0f);
+		floorTrans->setScaleY(20.0f);
+		floorTrans->setScaleZ(20.0f);
+		auto pepeTrans  = pepeEntity->AddComponent<Components::CTransform>();
+		pepeTrans->setPosition(Math::Vector3f(7.5f, 0.0f, 0.0f));
+		pepeTrans->setScale(Math::Vector3f(3.0f));
+
 
 		std::vector<Vertex> vertices =
 		{
@@ -69,23 +85,23 @@ namespace Dodo::Engine
 			{{-0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f},	 {0.0f, 0.0f, 1.0f}}
 		};
 
-		mesh1->CreateMeshFromFile("resources/models/WoodBox.obj");
+		//mesh1->CreateMeshFromFile("resources/models/sponza.obj");
+		mesh1->CreateMeshFromFile("resources/models/bunny.obj");
 		mesh2->CreateMeshFromFile("resources/models/pepeWithNormals.obj");
+		mesh3->CreateMeshFromFile("resources/models/Sci-Fi-Floor-1-OBJ.obj");
 
 		std::vector<std::shared_ptr<Dodo::Entity::CEntity>> entities = {};
 		for (auto &ent : Entity::CEntityHandler::GetEntities())
 		{
 			entities.push_back(std::shared_ptr<Entity::CEntity>(ent));
 		}
-		std::vector<std::shared_ptr<Components::CMaterial>> materials = {mat1 , mat2 };
-		std::vector<std::shared_ptr<Components::CMesh>> meshes = { mesh1, mesh2 };
+		std::vector<std::shared_ptr<Components::CMaterial>> materials = {mat1 , mat2, mat3 };
+		std::vector<std::shared_ptr<Components::CMesh>> meshes = { mesh1, mesh2, mesh3 };
 
 
 		// renderer init
 		m_pRenderer = std::make_shared<Rendering::CRenderer>(meshes, materials, m_pCamera, entities);
 		m_pRenderer->Initialize(m_pVulkanIntegration, m_pWindow);
-
-
 
 
 		CLog::Message("======== Engine Initialized! ========");
@@ -118,16 +134,16 @@ namespace Dodo::Engine
 			std::chrono::duration<double> delta = newtime - lastTime;
 			m_deltaTime = delta.count();
 
-			m_fTimer += m_deltaTime;
-
-			if (m_fTimer >= 1.0f)
-			{
-				float fps = 1.0 / m_deltaTime;
-				char buf[10];
-				sprintf_s(buf, "%.1f", fps);
-				glfwSetWindowTitle(m_pWindow->GetWindow(), buf);
-				m_fTimer = 0.0f;
-			}
+			//m_fTimer += m_deltaTime;
+			//
+			//if (m_fTimer >= 1.0f)
+			//{
+			//	float fps = 1.0 / m_deltaTime;
+			//	char buf[10];
+			//	sprintf_s(buf, "%.1f", fps);
+			//	glfwSetWindowTitle(m_pWindow->GetWindow(), buf);
+			//	m_fTimer = 0.0f;
+			//}
 			newtime = lastTime;
 		}
 		

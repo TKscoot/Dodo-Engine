@@ -281,18 +281,18 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::Initialize(VkRenderPass &rend
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{};
 
-	VkGraphicsPipelineCreateInfo pipelineCreateInfo = vks::initializers::pipelineCreateInfo(pipelineLayout, renderPass);
+	VkGraphicsPipelineCreateInfo pipelineCreateInfo = vks::initializers::pipelineCreateInfo(pipelineLayout, GUI::renderPass);
 
 	pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
 	pipelineCreateInfo.pRasterizationState = &rasterizationState;
-	pipelineCreateInfo.pColorBlendState = &colorBlendState;
-	pipelineCreateInfo.pMultisampleState = &multisampleState;
-	pipelineCreateInfo.pViewportState = &viewportState;
-	pipelineCreateInfo.pDepthStencilState = &depthStencilState;
-	pipelineCreateInfo.pDynamicState = &dynamicState;
-	pipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-	pipelineCreateInfo.pStages = shaderStages.data();
-	pipelineCreateInfo.flags = VK_DYNAMIC_STATE_SCISSOR | VK_DYNAMIC_STATE_VIEWPORT;
+	pipelineCreateInfo.pColorBlendState	   = &colorBlendState;
+	pipelineCreateInfo.pMultisampleState   = &multisampleState;
+	pipelineCreateInfo.pViewportState	   = &viewportState;
+	pipelineCreateInfo.pDepthStencilState  = &depthStencilState;
+	pipelineCreateInfo.pDynamicState	   = &dynamicState;
+	pipelineCreateInfo.stageCount		   = static_cast<uint32_t>(shaderStages.size());
+	pipelineCreateInfo.pStages			   = shaderStages.data();
+	pipelineCreateInfo.flags			   = VK_DYNAMIC_STATE_SCISSOR | VK_DYNAMIC_STATE_VIEWPORT;
 
 	// Vertex bindings an attributes based on ImGui vertex definition
 	std::vector<VkVertexInputBindingDescription> vertexInputBindings = {
@@ -338,6 +338,97 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::Initialize(VkRenderPass &rend
 	return DodoError::DODO_OK;
 }
 
+VkResult Dodo::Rendering::GUI::CreateRenderPass(VkFormat swapChainFormat, VkFormat depthFormat)
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+
+	VkAttachmentDescription colorAttachment = {};
+	colorAttachment.format = swapChainFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentDescription depthAttachment = {};
+	depthAttachment.format = depthFormat;
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference colorAttachmentRef = {};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef = {};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+	subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+	VkSubpassDependency dependency = {};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment , depthAttachment };
+	VkRenderPassCreateInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	renderPassInfo.pAttachments = attachments.data();
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependency;
+
+	result = vkCreateRenderPass(m_pIntegration->device(), &renderPassInfo, nullptr, &renderPass);
+	CError::CheckError<VkResult>(result);
+
+	return result;
+}
+
+VkResult Dodo::Rendering::GUI::CreateFramebuffers(std::vector<VkImageView> imageViews, VkImageView depthImageView, VkExtent2D extent)
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+
+	frameBuffers.resize(imageViews.size());
+
+	for (size_t i = 0; i < imageViews.size(); i++)
+	{
+		std::array<VkImageView, 2> attachments = {
+			imageViews[i],
+			depthImageView
+		};
+
+		VkFramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.attachmentCount = attachments.size();
+		framebufferInfo.pAttachments = attachments.data();
+		framebufferInfo.width =  extent.width;
+		framebufferInfo.height = extent.height;
+		framebufferInfo.layers = 1;
+
+		result = vkCreateFramebuffer(m_pIntegration->device(), &framebufferInfo, nullptr, &frameBuffers[i]);
+		CError::CheckError<VkResult>(result);
+	}
+
+	return result;
+}
+
 Dodo::Environment::DodoError Dodo::Rendering::GUI::NewFrame(double deltaTime, bool updateFrameGraph)
 {
 	ImGui::NewFrame();
@@ -353,18 +444,23 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::NewFrame(double deltaTime, bo
 
 	ImVec4 clear_color = ImColor(114, 144, 154);
 	static float f = 0.0f;
-	ImGui::TextUnformatted("ImGui test!");
+	//ImGui::TextUnformatted("ImGui test!");
 
 	ImGui::TextUnformatted(m_pIntegration->physDeviceProps().deviceName);
 
-	//float frameTime = 1000.0f / (deltaTime * 1000.0f);
 	float frameTime = deltaTime;
+	uiSettings.frameTimeMin = 0.0f;
 	// Update frame time display
 	if (updateFrameGraph)
 	{
+		uiSettings.frameTimeCycle++;
 		std::rotate(uiSettings.frameTimes.begin(), uiSettings.frameTimes.begin() + 1, uiSettings.frameTimes.end());
-		//CLog::Message(std::to_string(deltaTime));
-		uiSettings.frameTimes.back() = frameTime * 100.0;
+		uiSettings.frameTimes.back() = frameTime * 100.0f;
+		if (uiSettings.frameTimeCycle <= 2)
+		{
+			uiSettings.frameTimes.back() = 0.0f;
+
+		}
 		if (frameTime < uiSettings.frameTimeMin)
 		{
 			uiSettings.frameTimeMin = frameTime;
@@ -374,12 +470,24 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::NewFrame(double deltaTime, bo
 			uiSettings.frameTimeMax = frameTime;
 		}
 	}
+	auto size = ImGui::GetWindowSize();
+	ImGui::Text("%.2f ms/frame (%.1f fps)", uiSettings.frameTimes[49] * 100.0f, 1.0f / uiSettings.frameTimes[49] * 100.0f);
+	ImGui::TextUnformatted("Frametimes: ");
+	ImGui::PlotLines("", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(size.x, 60));
 
-	//ImGui::PlotLines("Frame Times", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(0, 80));
+	ImGui::Text("Camera");
 
-	//ImGui::Text("Camera");
-	//ImGui::InputFloat3("position", &example->camera.position.x, 2);
-	//ImGui::InputFloat3("rotation", &example->camera.rotation.x, 2);
+
+	Math::Vector3f camPos = *m_cameraPos;
+	Math::Vector3f camRot = *m_cameraRot;
+	Math::Vector3f camRotDeg;
+	camRotDeg.x = glm::degrees(camRot.x);
+	camRotDeg.y	= glm::degrees(camRot.y);
+	camRotDeg.z	= glm::degrees(camRot.z);
+	
+	ImGui::InputFloat3("Position", &camPos.x, 2);
+	ImGui::InputFloat3("Rotation", &camRotDeg.x, 2);
+	ImGui::SliderFloat("Camera speed", m_cameraSpeed, 0.0f, 0.5f);
 
 	ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiSetCond_FirstUseEver);
 	ImGui::Begin("Example settings");
@@ -387,8 +495,8 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::NewFrame(double deltaTime, bo
 	ImGui::Checkbox("Display logos", &uiSettings.displayLogos);
 	ImGui::Checkbox("Display background", &uiSettings.displayBackground);
 	ImGui::Checkbox("Animate light", &uiSettings.animateLight);
-	ImGui::SliderFloat("Light speed", &uiSettings.lightSpeed, 0.1f, 1.0f);
 	ImGui::End();
+
 
 	ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
 	ImGui::ShowDemoWindow();
@@ -405,7 +513,7 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::CreateCommandBuffer(std::vect
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	m_vkCommandBuffers.resize(_frameBuffers.size());
+	m_vkCommandBuffers.resize(frameBuffers.size());
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -422,7 +530,8 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::CreateCommandBuffer(std::vect
 bool Dodo::Rendering::GUI::UpdateBuffers()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
-	bool updateCmdBuffers = false;
+	//bool updateCmdBuffers = false;
+	m_bUpdated = false;
 
 	ImDrawData* imDrawData = ImGui::GetDrawData();
 
@@ -430,12 +539,12 @@ bool Dodo::Rendering::GUI::UpdateBuffers()
 	VkDeviceSize vertexBufferSize = imDrawData->TotalVtxCount * sizeof(ImDrawVert);
 	VkDeviceSize indexBufferSize = imDrawData->TotalIdxCount * sizeof(ImDrawIdx);
 
-	// Update buffers only if vertex or index count has been changed compared to current buffer size
 	if ((vertexBufferSize == 0) || (indexBufferSize == 0))
 	{
 		return false;
 	}
 
+	// Update buffers only if vertex or index count has been changed compared to current buffer size
 
 	// Vertex buffer
 	if ((vertexBuffer.buffer == VK_NULL_HANDLE) || (vertexCount != imDrawData->TotalVtxCount))
@@ -455,7 +564,7 @@ bool Dodo::Rendering::GUI::UpdateBuffers()
 		vertexCount = imDrawData->TotalVtxCount;
 		vertexBuffer.unmap();
 		vertexBuffer.map();
-		updateCmdBuffers = true;
+		m_bUpdated = true;
 	}
 
 	// Index buffer
@@ -476,7 +585,8 @@ bool Dodo::Rendering::GUI::UpdateBuffers()
 
 		indexCount = imDrawData->TotalIdxCount;
 		indexBuffer.map();
-		updateCmdBuffers = true;
+
+		m_bUpdated = true;
 	}
 
 	// Upload data
@@ -496,8 +606,10 @@ bool Dodo::Rendering::GUI::UpdateBuffers()
 	vertexBuffer.flush();
 	indexBuffer.flush();
 
+	m_bUpdated = false;
 
-	return updateCmdBuffers;
+
+	return true;
 }
 
 Dodo::Environment::DodoError Dodo::Rendering::GUI::DrawFrame(
@@ -530,8 +642,8 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::DrawFrame(
 
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass;
-		renderPassInfo.framebuffer = framebuffers[i];
+		renderPassInfo.renderPass = GUI::renderPass;
+		renderPassInfo.framebuffer = frameBuffers[i];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = extend;
 
@@ -539,7 +651,7 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::DrawFrame(
 		clearValues[0].color = { 0.2f, 0.2f, 0.2f, 1.0f };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
-		renderPassInfo.clearValueCount = clearValues.size();
+		renderPassInfo.clearValueCount =2;
 		renderPassInfo.pClearValues = clearValues.data();
 
 		vkCmdBeginRenderPass(m_vkCommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);

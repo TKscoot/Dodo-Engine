@@ -149,6 +149,7 @@ namespace Dodo
 				m_pWindow = _window;
 				glfwSetKeyCallback(_window->GetWindow(), Dodo::Environment::CInput::key_callback);
 				glfwSetMouseButtonCallback(_window->GetWindow(), Dodo::Environment::CInput::mouse_button_callback);
+				glfwSetCursorPosCallback(_window->GetWindow(), Dodo::Environment::CInput::mouse_pos_callback);
 			}
 			
 			static bool IsKeyPressed(KeyCode key);
@@ -160,12 +161,17 @@ namespace Dodo
 
 			static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 			static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+			static void mouse_pos_callback(GLFWwindow* window, double xpos, double ypos);
 			static bool isKeyPressed;
 			static KeyCode lastPressedKey;
 			static bool isMouseButtonPressed;
 			static MouseKeyCode lastPressedMouseButton;
 
 			static std::shared_ptr<CWindow> m_pWindow;
+
+			static Math::Vector2f m_lastMousePos;
+
+			static bool toggleMouse;
 		}; 
 	}
 }

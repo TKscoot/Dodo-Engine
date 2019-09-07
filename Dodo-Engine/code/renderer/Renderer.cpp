@@ -27,7 +27,9 @@ DodoError Dodo::Rendering::CRenderer::Initialize(std::shared_ptr<VKIntegration> 
 	CreateDescriptorPool();
 	CreateDescriptorSets();
 	// GUI
-	m_pGui = std::make_shared<Rendering::GUI>(m_pIntegration);
+	m_pGui = std::make_shared<Rendering::GUI>(m_pIntegration, &m_pCamera->cameraPos, &m_pCamera->cameraFront, m_pCamera->camSpeed);
+	m_pGui->CreateRenderPass(m_vkSwapChainImageFormat, FindDepthFormat());
+	m_pGui->CreateFramebuffers(m_vkSwapChainImageViews, m_vkDepthImageView, m_vkSwapChainExtent);
 	m_pGui->Initialize(m_vkRenderPass, 800.0f, 600.0f);
 	CreateCommandBuffers();
 	CreateSyncObjects();
@@ -39,6 +41,8 @@ DodoError Dodo::Rendering::CRenderer::Initialize(std::shared_ptr<VKIntegration> 
 
 DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 {
+
+
 	DodoError result = DODO_INITIALIZATION_FAILED;
 	VkResult vkResult = VK_ERROR_INITIALIZATION_FAILED;
 
@@ -79,14 +83,14 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 	}
 
 	// Update uniform buffers here!!
-	UpdateUniformBuffer(imageIndex);
+	UpdateUniformBuffer();
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 	std::vector<VkSemaphore> waitSemaphores	  = { m_sSyncObjects.imageAvailableSemaphores[m_iCurrentFrame] };
 	std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	std::vector<VkCommandBuffer> commandBuffers = {/* m_vkCommandBuffers.at(imageIndex) , */m_pGui->m_vkCommandBuffers.at(imageIndex) };
+	std::vector<VkCommandBuffer> commandBuffers = {m_vkCommandBuffers.at(imageIndex), m_pGui->m_vkCommandBuffers.at(imageIndex)};
 
 
 	submitInfo.waitSemaphoreCount	= 1;
@@ -104,19 +108,6 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 	vkResult = vkQueueSubmit(m_pIntegration->queues().graphicsQueue, 1, &submitInfo, m_sSyncObjects.inFlightFences[m_iCurrentFrame]);
 	CError::CheckError<VkResult>(vkResult);
 
-
-	//if (m_pGui->UpdateBuffers())
-	//{
-	//	if (vkWaitForFences(m_pIntegration->device(), 1, &m_sSyncObjects.inFlightFences[m_iCurrentFrame], VK_TRUE, 999999999) == VK_SUCCESS)
-	//	{
-	//		m_pGui->NewFrame(deltaTime, true);
-	//		m_pGui->UpdateBuffers();
-	//		m_pGui->DrawFrame(m_vkSwapChainExtent, m_vkRenderPass, m_vkSwapChainFramebuffers, deltaTime);
-	//		//UpdateCommandBuffers();
-	//	}
-	//}
-
-
 	VkPresentInfoKHR presentInfo   = {};
 	presentInfo.sType			   = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.waitSemaphoreCount = 1;
@@ -130,12 +121,30 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 	vkResult = vkQueuePresentKHR(m_pIntegration->queues().presentQueue, &presentInfo);
 	CError::CheckError<VkResult>(vkResult);
 
-	vkQueueWaitIdle(m_pIntegration->queues().presentQueue);
+	m_fFrameTimeCounter += deltaTime;
 
-	m_pGui->NewFrame(deltaTime, true);
-	if (m_pGui->UpdateBuffers())
+	if (vkWaitForFences(m_pIntegration->device(),
+		1,
+		&m_sSyncObjects.inFlightFences[m_iCurrentFrame],
+		VK_TRUE,
+		std::numeric_limits<uint64_t>::max()) == VK_SUCCESS)
 	{
-		m_pGui->DrawFrame(m_vkSwapChainExtent, m_vkRenderPass, m_vkSwapChainFramebuffers, deltaTime);
+		//UpdateCommandBuffers();
+	
+		if (m_fFrameTimeCounter >= 1.0f)
+		{
+			m_pGui->NewFrame(deltaTime, true);
+			m_fFrameTimeCounter = 0.0f;
+		}
+		else
+		{
+			m_pGui->NewFrame(deltaTime, false);
+		}
+	
+		if (m_pGui->UpdateBuffers())
+		{
+			m_pGui->DrawFrame(m_vkSwapChainExtent, m_vkRenderPass, m_vkSwapChainFramebuffers, deltaTime);
+		}
 	}
 
 	m_iCurrentFrame = (m_iCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -355,7 +364,7 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSetLayout()
 	uboLayoutBinding.descriptorCount	= 1;
 	uboLayoutBinding.descriptorType		= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	uboLayoutBinding.pImmutableSamplers = nullptr;	// image sampling related
-	uboLayoutBinding.stageFlags			= VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.stageFlags			= VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
 	//VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	//layoutInfo.sType					= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -497,10 +506,17 @@ VkResult Dodo::Rendering::CRenderer::CreateGraphicsPipeline()
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+	std::vector<VkPushConstantRange> pushConstantRanges = {
+	vks::initializers::pushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::vec3), 0),
+	vks::initializers::pushConstantRange(VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(CMaterial::PushConsts), sizeof(Vector3f)),
+	};
+
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType		  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1; // Optional
 	pipelineLayoutInfo.pSetLayouts	  = &m_vkDescriptorSetLayout;
+	pipelineLayoutInfo.pushConstantRangeCount = 2;
+	pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
 
 	result = vkCreatePipelineLayout(m_pIntegration->device(), &pipelineLayoutInfo, nullptr, &m_vkPipelineLayout);
 	CError::CheckError<VkResult>(result);
@@ -523,7 +539,6 @@ VkResult Dodo::Rendering::CRenderer::CreateGraphicsPipeline()
 	pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex   = -1;
 	pipelineInfo.flags               = VK_DYNAMIC_STATE_SCISSOR | VK_DYNAMIC_STATE_VIEWPORT;
-
 
 
 	// on swap recreation shader modules problems
@@ -868,7 +883,7 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 
 	
 		vkCmdBindPipeline(m_vkCommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_vkGraphicsPipeline);
-	
+		
 		//std::vector<VkBuffer> vertexBuffers = {};
 		VkBuffer *vertexBuffers = new VkBuffer[m_matDataBuffers.size()];
 		VkDeviceSize offsets[] = {0};
@@ -878,7 +893,7 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 	
 			vkCmdBindVertexBuffers(m_vkCommandBuffers[i], 0, 1, &m_matDataBuffers[j].vertexBuffer, offsets);	// evtl buggy bei mehreren vertex buffern
 			vkCmdBindIndexBuffer(m_vkCommandBuffers[i], m_pMeshes[j]->m_dataBuffers.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-	
+
 			vkCmdBindDescriptorSets(m_vkCommandBuffers[i], 
 									VK_PIPELINE_BIND_POINT_GRAPHICS, 
 									m_vkPipelineLayout, 
@@ -887,28 +902,24 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 									&m_vkDescriptorSets[j], 
 									0, 
 									nullptr);
-	
+
+			Vector3f pos = m_pMeshes[j]->entity->GetComponent<Components::CTransform>()->getPosition();
+			vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Math::Vector3f), &pos);
+			float f = 0.5f;
+			//m_pMeshes[0]->entity->GetComponent<Components::CMaterial>()->setPushConstants(1.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+			//m_pMeshes[1]->entity->GetComponent<Components::CMaterial>()->setPushConstants(0.0f, 0.8f, 1.0f, 1.0f, 1.0f);
+
+			CMaterial::PushConsts pushConsts = m_pMeshes[j]->entity->GetComponent<Components::CMaterial>()->pushConstants();
+			//pushConsts.roughness = m_pGui->uiSettings.roughness;
+			//pushConsts.metallic = m_pGui->uiSettings.roughness;
+			vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(Vector3f), sizeof(CMaterial::PushConsts), &pushConsts);
+
 			vkCmdDrawIndexed(m_vkCommandBuffers[i], m_pMeshes[j]->m_indices.size(), 1, 0, 0, 0);
-	
-			//vkCmdDraw(m_vkCommandBuffers[i], 3, 1, 0, 0);	// only drawing one triangle even 2 vert buffers are bound
 		}
-	
 	
 		vkCmdEndRenderPass(m_vkCommandBuffers[i]);
 		result = vkEndCommandBuffer(m_vkCommandBuffers[i]);
-
-
-		//VkCommandBufferAllocateInfo allocInfo = {};
-		//allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		//allocInfo.commandPool = m_vkCommandPool;
-		//allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = 1;
-
-		result = vkAllocateCommandBuffers(m_pIntegration->device(), &allocInfo, &m_vkPrimaryCB);
 		CError::CheckError<VkResult>(result);
-
-		CError::CheckError<VkResult>(result);
-	
 	}
 
 
@@ -1056,32 +1067,29 @@ VkResult Dodo::Rendering::CRenderer::UpdateCommandBuffers()
 
 		vkCmdBindPipeline(m_vkCommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_vkGraphicsPipeline);
 
-		VkBuffer *vertexBuffers = new VkBuffer[m_matDataBuffers.size()];
-		VkDeviceSize offsets[1] = { 0 };
-		for (int j = 0; j < m_pMeshes.size(); j++)
+		if (m_pGui->uiSettings.displayModels)
 		{
-			vertexBuffers[j] = m_matDataBuffers[j].vertexBuffer;
+			VkBuffer *vertexBuffers = new VkBuffer[m_matDataBuffers.size()];
+			VkDeviceSize offsets[1] = { 0 };
+			for (int j = 0; j < m_pMeshes.size(); j++)
+			{
+				vertexBuffers[j] = m_matDataBuffers[j].vertexBuffer;
 
-			vkCmdBindVertexBuffers(m_vkCommandBuffers[i], 0, 1, &m_matDataBuffers[j].vertexBuffer, offsets);	// evtl buggy bei mehreren vertex buffern
-			vkCmdBindIndexBuffer(m_vkCommandBuffers[i], m_pMeshes[j]->m_dataBuffers.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdBindVertexBuffers(m_vkCommandBuffers[i], 0, 1, &m_matDataBuffers[j].vertexBuffer, offsets);	// evtl buggy bei mehreren vertex buffern
+				vkCmdBindIndexBuffer(m_vkCommandBuffers[i], m_pMeshes[j]->m_dataBuffers.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdBindDescriptorSets(m_vkCommandBuffers[i],
-				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				m_vkPipelineLayout,
-				0,
-				1,
-				&m_vkDescriptorSets[j],
-				0,
-				nullptr);
+				vkCmdBindDescriptorSets(m_vkCommandBuffers[i],
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					m_vkPipelineLayout,
+					0,
+					1,
+					&m_vkDescriptorSets[j],
+					0,
+					nullptr);
 
-			vkCmdDrawIndexed(m_vkCommandBuffers[i], m_pMeshes[j]->m_indices.size(), 1, 0, 0, 0);
-
-			//vkCmdDraw(m_vkCommandBuffers[i], 3, 1, 0, 0);	// only drawing one triangle even 2 vert buffers are bound
+				vkCmdDrawIndexed(m_vkCommandBuffers[i], m_pMeshes[j]->m_indices.size(), 1, 0, 0, 0);
+			}
 		}
-
-		// Render commands
-		int32_t vertexOffset = 0;
-		int32_t indexOffset = 0;
 
 		vkCmdEndRenderPass(m_vkCommandBuffers[i]);
 
@@ -1333,7 +1341,7 @@ void Dodo::Rendering::CRenderer::EndSingleTimeCommands(VkCommandBuffer _buf)
 	vkFreeCommandBuffers(m_pIntegration->device(), m_vkCommandPool, 1, &_buf);
 }
 
-VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer(uint32_t _currentImage)
+VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
@@ -1358,7 +1366,7 @@ VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer(uint32_t _currentImage)
 		ubo.model	   = glm::rotate(glm::mat4(1.0f), time *  glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		}
-		//m_pCamera->GetComponent<Components::CTransform>()->setRotationY(time * 100.0f);
+		ubo.camPos     = m_pCamera->cameraPos;
 		ubo.View	   = m_pCamera->getViewMatrix();
 		ubo.projection = m_pCamera->getProjectionMatrix();
 		ubo.projection[1][1] *= -1;
@@ -1432,10 +1440,12 @@ VkResult Dodo::Rendering::CRenderer::RecreateSwapChain()
 	CreateGraphicsPipeline();
 	CreateDepthResources();
 	CreateFramebuffers();
+	m_pGui->CreateFramebuffers(m_vkSwapChainImageViews, m_vkDepthImageView, m_vkSwapChainExtent);
 	CreateUniformBuffers();
 	CreateDescriptorPool();
 	CreateDescriptorSets();
 	CreateCommandBuffers();
+
 
 	return result;
 }

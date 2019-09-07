@@ -30,10 +30,11 @@ namespace Dodo
 			bool displayLogos = true;
 			bool displayBackground = true;
 			bool animateLight = false;
-			float lightSpeed = 0.25f;
+			float roughness = 0.25f;
 			std::array<float, 50> frameTimes{};
 			float frameTimeMin = 9999.0f, frameTimeMax = 0.0f;
 			float lightTimer = 0.0f;
+			int frameTimeCycle = 0;
 		};
 
 		// ----------------------------------------------------------------------------
@@ -42,14 +43,19 @@ namespace Dodo
 		class GUI
 		{
 		public:
-			GUI(std::shared_ptr<VKIntegration> integration) 
+			GUI(std::shared_ptr<VKIntegration> integration, Math::Vector3f* cameraPos, Math::Vector3f* cameraRot, float* cameraSpeed)
 				: m_pIntegration(integration)
+				, m_cameraPos(cameraPos)
+				, m_cameraRot(cameraRot)
+				, m_cameraSpeed(cameraSpeed)
 			{
 				device = m_pIntegration->device();
 				ImGui::CreateContext();
 			}
 
 			DodoError Initialize(VkRenderPass &renderPass, float width, float height);
+			VkResult CreateRenderPass(VkFormat swapChainFormat, VkFormat depthFormat);
+			VkResult CreateFramebuffers(std::vector<VkImageView> imageViews, VkImageView depthImageView, VkExtent2D extent);
 			DodoError NewFrame(double deltaTime, bool updateFrameGraph);
 			DodoError CreateCommandBuffer(std::vector<VkFramebuffer> _frameBuffers, VkCommandPool _commandPool);
 			bool UpdateBuffers();
@@ -71,6 +77,7 @@ namespace Dodo
 			} pushConstBlock;
 			std::vector<VkCommandBuffer> m_vkCommandBuffers = {};
 
+			UISettings uiSettings;
 		private:
 			// Vulkan resources for rendering the UI
 			VkSampler			  sampler					= VK_NULL_HANDLE;
@@ -87,13 +94,17 @@ namespace Dodo
 			VkDescriptorPool	  descriptorPool			= VK_NULL_HANDLE;
 			VkDescriptorSetLayout descriptorSetLayout		= VK_NULL_HANDLE;
 			VkDescriptorSet		  descriptorSet				= VK_NULL_HANDLE;
+			VkRenderPass		  renderPass				= VK_NULL_HANDLE;
+			std::vector<VkFramebuffer> frameBuffers = {};
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
+			Math::Vector3f* m_cameraPos;
+			Math::Vector3f* m_cameraRot;
+			float* m_cameraSpeed;
 			VkDevice device;
 
 			bool m_bUpdated = false;
 
-			UISettings uiSettings;
 		};
 	}
 }

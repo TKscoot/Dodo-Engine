@@ -18,7 +18,7 @@ namespace Dodo
 			inline CTransform()
 				: m_scale({ 1.0f, 1.0f, 1.0f })
 				, m_rotation(Vector3f())
-				, m_translation({ 0.0f, 0.0f, 1.0f })
+				, m_translation({ 0.0f, 0.0f, 0.0f })
 				, m_direction({ 0.0f, 0.0f, 1.0f })
 				, m_right({ 1.0f, 0.0f, 0.0f })
 				, m_up({ 0.0f, 1.0f, 0.0f })
