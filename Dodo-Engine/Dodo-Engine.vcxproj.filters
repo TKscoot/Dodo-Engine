@@ -302,6 +302,7 @@
     <None Include="shaders\default.vert" />
     <None Include="shaders\ui.frag" />
     <None Include="shaders\ui.vert" />
+    <None Include="shaders\pbr.frag" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ext\assimp\lib\assimp-vc140-mt.lib" />

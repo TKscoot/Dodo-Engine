@@ -45,7 +45,7 @@ namespace Dodo::Engine
 
 		Components::CMaterial::ShaderInfo shaderInfo;
 		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
-		shaderInfo.fragmentShaderFileName = "shaders/default.frag.spv";
+		shaderInfo.fragmentShaderFileName = "shaders/pbr.frag.spv";
 
 		//std::shared_ptr<Entity::CEntity> boxEntity = std::make_shared<Entity::CEntity>();
 		//std::shared_ptr<Entity::CEntity> pepeEntity = std::make_shared<Entity::CEntity>();
@@ -58,11 +58,28 @@ namespace Dodo::Engine
 		std::shared_ptr<Components::CMesh> mesh2 = pepeEntity->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMesh> mesh3 = floorEntity->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMaterial> mat1 = boxEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		mat1->SetTexture("resources/textures/WoodBox/default.jpg");
+		//mat1->SetTexture("resources/textures/WoodBox/default.jpg");
+		mat1->SetTextures(
+			//"resources/textures/RustedIron/rustediron2_basecolor.png",
+			"resources/textures/Grass.jpg",
+
+			"resources/textures/RustedIron/rustediron2_normal.png",
+			"resources/textures/RustedIron/rustediron2_metallic.png",
+			"resources/textures/RustedIron/rustediron2_metallic.png");
 		std::shared_ptr<Components::CMaterial> mat2 = pepeEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		mat2->SetTexture("resources/textures/pepe_text.png");
+		//mat2->SetTexture("resources/textures/pepe_text.png");
+		mat2->SetTextures(
+				"resources/textures/pepe_text.png",
+				"resources/textures/grey.png",
+				"resources/textures/grey.png",
+				"resources/textures/grey.png");
 		std::shared_ptr<Components::CMaterial> mat3 = floorEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		mat3->SetTexture("resources/textures/Grass.jpg");
+		//mat3->SetTexture("resources/textures/Grass.jpg");
+		mat3->SetTextures(
+			"resources/textures/RustedIron/rustediron2_basecolor.png",
+			"resources/textures/RustedIron/rustediron2_normal.png",
+			"resources/textures/RustedIron/rustediron2_metallic.png",
+			"resources/textures/grey.png");
 
 		auto boxTrans = boxEntity->AddComponent<Components::CTransform>();
 		//boxTrans->setScale(Math::Vector3f(0.05f));

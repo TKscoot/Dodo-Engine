@@ -89,31 +89,48 @@ namespace Dodo
 				float r, g, b = 1.0f;
 			};
 
-			struct TextureData
+			struct Texture
 			{
-				struct TextureImage
+				struct TextureData
 				{
-					VkImage		   textureImage		  = VK_NULL_HANDLE;
+					VkImage		   textureImage       = VK_NULL_HANDLE;
 					VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
-					VkImageView	   textureImageView   = VK_NULL_HANDLE;
+					VkImageView	   textureImageView	  = VK_NULL_HANDLE;
 					VkSampler	   textureSampler	  = VK_NULL_HANDLE;
 				};
+
 
 				std::string  filename     = "";
 				int			 texWidth	  = 0;
 				int			 texHeight    = 0;
 				int			 texChannels  = 0;
 				stbi_uc*	 pixels		  = nullptr;
-				TextureImage textureImage = {};
+				TextureData  textureData  = {};
 
+			};
+
+			struct Textures
+			{
+				Texture albedo;
+				Texture normal;
+				Texture metallic;
+				Texture roughness;
 			};
 
 			CMaterial(std::shared_ptr<VKIntegration> _integration, ShaderInfo _shaderInfo)
 				: m_pIntegration(_integration),
 				m_shaderInfo(_shaderInfo)
 			{
-				m_texture.filename = std::string();
-				SetTexture("resources/textures/default.png");
+				m_textures.albedo.filename    = std::string();
+				m_textures.normal.filename    = std::string();
+				m_textures.metallic.filename  = std::string();
+				m_textures.roughness.filename = std::string();
+
+				SetTextures(
+					"resources/textures/default.png", 
+					"resources/textures/black.png", 
+					"resources/textures/black.png", 
+					"resources/textures/black.png");
 			}
 
 			DodoError CreateShaders()
@@ -141,7 +158,7 @@ namespace Dodo
 				return DodoError::DODO_OK;
 			}
 
-			DodoError LoadTexture();
+			DodoError LoadTexture(Texture &texture);
 
 			//virtual ~CMaterial() = default;
 
@@ -155,11 +172,18 @@ namespace Dodo
 
 			// Getter / Setter
 			Shaders const shaders() const { return m_shaders; }
-			TextureData& const textureData() { return m_texture; }
-			void SetTexture(std::string _filename) 
+			Textures& const textures() { return m_textures; }
+			void SetTextures(std::string _albedo, std::string _normal, std::string _metallic, std::string _roughness)
 			{ 
-				m_texture.filename = _filename;
-				LoadTexture();
+				m_textures.albedo   .filename	  = _albedo;
+				m_textures.normal   .filename    = _normal;
+				m_textures.metallic .filename  = _metallic;
+				m_textures.roughness.filename = _roughness;
+
+				LoadTexture(m_textures.albedo);
+				LoadTexture(m_textures.normal);
+				LoadTexture(m_textures.metallic);
+				LoadTexture(m_textures.roughness);
 			}
 
 			PushConsts& const pushConstants() { return pushConsts; }
@@ -176,7 +200,7 @@ namespace Dodo
 		protected:
 			Shaders     m_shaders	 = {};
 			ShaderInfo  m_shaderInfo = {};
-			TextureData m_texture	 = {};
+			Textures    m_textures	 = {};
 			PushConsts  pushConsts   = {};
 
 			std::shared_ptr<VKIntegration> m_pIntegration;

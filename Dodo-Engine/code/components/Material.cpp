@@ -4,10 +4,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-Dodo::Environment::DodoError Dodo::Components::CMaterial::LoadTexture()
+Dodo::Environment::DodoError Dodo::Components::CMaterial::LoadTexture(Texture &texture)
 {
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(m_texture.filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	
+
+	stbi_uc* pixels = stbi_load(texture.filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
 
 	if (!pixels)
 	{
@@ -15,10 +18,10 @@ Dodo::Environment::DodoError Dodo::Components::CMaterial::LoadTexture()
 		return DodoError::DODO_FAILED;
 	}
 
-	m_texture.texWidth    = texWidth;
-	m_texture.texHeight   = texHeight;
-	m_texture.texChannels = texChannels;
-	m_texture.pixels	  = pixels;
+	texture.texWidth    = texWidth;
+	texture.texHeight   = texHeight;
+	texture.texChannels = texChannels;
+	texture.pixels	    = pixels;
 
 
 	return DodoError::DODO_OK;
@@ -26,9 +29,28 @@ Dodo::Environment::DodoError Dodo::Components::CMaterial::LoadTexture()
 
 void Dodo::Components::CMaterial::Finalize()
 {
-	vkDestroySampler(m_pIntegration->device(), m_texture.textureImage.textureSampler, nullptr);
-	vkDestroyImageView(m_pIntegration->device(), m_texture.textureImage.textureImageView, nullptr);
+	vkDestroySampler(m_pIntegration->device(),   m_textures.roughness.textureData.textureSampler, nullptr);
+	vkDestroyImageView(m_pIntegration->device(), m_textures.roughness.textureData.textureImageView, nullptr);
 
-	vkDestroyImage(m_pIntegration->device(), m_texture.textureImage.textureImage, nullptr);
-	vkFreeMemory(m_pIntegration->device(), m_texture.textureImage.textureImageMemory, nullptr);
+	vkDestroySampler(m_pIntegration->device(),   m_textures.metallic.textureData.textureSampler, nullptr);
+	vkDestroyImageView(m_pIntegration->device(), m_textures.metallic.textureData.textureImageView, nullptr);
+
+	vkDestroySampler(m_pIntegration->device(),   m_textures.normal.textureData.textureSampler, nullptr);
+	vkDestroyImageView(m_pIntegration->device(), m_textures.normal.textureData.textureImageView, nullptr);
+
+	vkDestroySampler(m_pIntegration->device(),   m_textures.albedo.textureData.textureSampler, nullptr);
+	vkDestroyImageView(m_pIntegration->device(), m_textures.albedo.textureData.textureImageView, nullptr);
+
+
+	vkDestroyImage(m_pIntegration->device(), m_textures.roughness.textureData.textureImage, nullptr);
+	vkFreeMemory(m_pIntegration->device(),   m_textures.roughness.textureData.textureImageMemory, nullptr);
+
+	vkDestroyImage(m_pIntegration->device(), m_textures.metallic.textureData.textureImage, nullptr);
+	vkFreeMemory(m_pIntegration->device(),   m_textures.metallic.textureData.textureImageMemory, nullptr);
+
+	vkDestroyImage(m_pIntegration->device(), m_textures.normal.textureData.textureImage, nullptr);
+	vkFreeMemory(m_pIntegration->device(),   m_textures.normal.textureData.textureImageMemory, nullptr);
+
+	vkDestroyImage(m_pIntegration->device(), m_textures.albedo.textureData.textureImage, nullptr);
+	vkFreeMemory(m_pIntegration->device(),   m_textures.albedo.textureData.textureImageMemory, nullptr);
 }

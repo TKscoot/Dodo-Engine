@@ -495,6 +495,9 @@ Dodo::Environment::DodoError Dodo::Rendering::GUI::NewFrame(double deltaTime, bo
 	ImGui::Checkbox("Display logos", &uiSettings.displayLogos);
 	ImGui::Checkbox("Display background", &uiSettings.displayBackground);
 	ImGui::Checkbox("Animate light", &uiSettings.animateLight);
+	ImGui::SliderFloat("Material roughness", &uiSettings.roughness, 0.0f, 1.0f);
+	ImGui::SliderFloat("Material metallic", &uiSettings.metallic, 0.0f, 1.0f);
+
 	ImGui::End();
 
 

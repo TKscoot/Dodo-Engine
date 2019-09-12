@@ -31,6 +31,7 @@ namespace Dodo
 			bool displayBackground = true;
 			bool animateLight = false;
 			float roughness = 0.25f;
+			float metallic = 0.25f;
 			std::array<float, 50> frameTimes{};
 			float frameTimeMin = 9999.0f, frameTimeMax = 0.0f;
 			float lightTimer = 0.0f;

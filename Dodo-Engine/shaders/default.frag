@@ -35,7 +35,7 @@ const float PI = 3.14159265359;
 vec3 materialcolor()
 {
 	vec4 diffuseColor = texture(texSampler, inTexCoord);
-	return /*(vec3(material.r, material.g, material.b)) + */  diffuseColor.xyz;
+	return /*vec3(material.r, material.g, material.b) + */  diffuseColor.rgb;
 }
 
 float D_GGX(float roughness, float NoH, const vec3 n, const vec3 h) {
@@ -128,29 +128,13 @@ vec3 shadingSpecularGGX(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
     // F (Fresnel term)
     float F_a = 1.0;
     float F_b = pow(1.0 - dotLH, 5); // manually?
-    vec3 F = mix(vec3(F_b), vec3(F_a), F0);
+    //vec3 F = mix(vec3(F_b), vec3(F_a), F0);
+	vec3 F = F0 + (1.0 - F0) * pow(1.0 - dotNV, 5.0); 
 
     // G (remapped hotness, see Unreal Shading)
     float k = (alpha + 2 * roughness + 1) / 8.0;
     float G = dotNL / (mix(dotNL, 1, k) * mix(dotNV, 1, k));
-    // '* dotNV' - canceled by normalization
 
-    // orginal G:
-    /*
-    {
-        float k = alpha / 2.0;
-        float k2 = k * k;
-        float invK2 = 1.0 - k2;
-        float vis = 1 / (dotLH * dotLH * invK2 + k2);
-
-        vec3 FV = mix(vec3(F_b), vec3(F_a), F0) * vis;
-        vec3 specular = D * FV / 4.0f;
-        return specular * dotNL;
-    }
-    */
-
-    // '/ dotLN' - canceled by lambert
-    // '/ dotNV' - canceled by G
     return D * F * G / 4.0;
 }
 
@@ -158,11 +142,13 @@ vec3 shadingSpecularGGX(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
 vec3 shadingGGX(vec3 N, vec3 V, vec3 L, vec3 color, float roughness, float metallic)
 {
     vec3 diffuse = color * (1 - metallic); // metals have no diffuse
+	vec3 F0 = mix(vec3(0.04), materialcolor(), metallic); // * material.specular
+
     vec3 specular = mix(vec3(0.04), color, metallic); // fixed spec for non-metals
 
     float dotNL = max(dot(N, L), 0.0);
 
-    return diffuse * dotNL + shadingSpecularGGX(N, V, L, roughness, specular);
+    return F0 * dotNL + shadingSpecularGGX(N, V, L, roughness, specular);
 }
 
 
@@ -184,14 +170,8 @@ void main()
 	roughness = max(roughness, step(fract(inWorldPos.y * 2.02), 0.5));
 #endif
 
-	// Specular contribution
-	vec3 Lo = vec3(0.0);
-
-		vec3 L = normalize(lightPos.xyz - inWorldPos);
-		Lo += BRDF(L, V, N, material.metallic, roughness);
-
-
-
+	// Light
+	vec3 L = normalize(lightPos.xyz - inWorldPos);
 
 	// Combine with ambient
 	vec3 color = materialcolor()  /** 0.08 */;

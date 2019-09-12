@@ -276,6 +276,62 @@ VkImageView Dodo::Rendering::CRenderer::CreateImageView(VkImage image, VkFormat 
 	return imageView;
 }
 
+VkResult Dodo::Rendering::CRenderer::CreateTextureImage(Components::CMaterial::Texture &_texture)
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+
+	VkDeviceSize imageSize = _texture.texWidth * _texture.texHeight * 4;
+
+
+	result = CreateBuffer(imageSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		stagingBuffer, stagingBufferMemory);
+	void* data;
+	vkMapMemory(m_pIntegration->device(), stagingBufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, _texture.pixels, static_cast<size_t>(imageSize));
+	vkUnmapMemory(m_pIntegration->device(), stagingBufferMemory);
+
+
+	stbi_image_free(_texture.pixels);
+
+	result = CreateImage(
+		_texture.texWidth,
+		_texture.texHeight,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+		VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		_texture.textureData.textureImage,
+		_texture.textureData.textureImageMemory);
+
+	result = TransitionImageLayout(
+		_texture.textureData.textureImage,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	result = CopyBufferToImage(
+		stagingBuffer,
+		_texture.textureData.textureImage,
+		static_cast<uint32_t>(_texture.texWidth),
+		static_cast<uint32_t>(_texture.texHeight));
+	result = TransitionImageLayout(
+		_texture.textureData.textureImage,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	vkDestroyBuffer(m_pIntegration->device(), stagingBuffer, nullptr);
+	vkFreeMemory(m_pIntegration->device(), stagingBufferMemory, nullptr);
+
+	return result;
+}
+
 VkResult Dodo::Rendering::CRenderer::CreateImageViews()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
@@ -371,14 +427,41 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSetLayout()
 	//layoutInfo.bindingCount				= 1;
 	//layoutInfo.pBindings				= &uboLayoutBinding;
 
-	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorCount = 1;
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	VkDescriptorSetLayoutBinding albedoSamplerLayoutBinding = {};
+	albedoSamplerLayoutBinding.binding = 1;
+	albedoSamplerLayoutBinding.descriptorCount = 1;
+	albedoSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	albedoSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	albedoSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+	VkDescriptorSetLayoutBinding normalSamplerLayoutBinding = {};
+	normalSamplerLayoutBinding.binding = 2;
+	normalSamplerLayoutBinding.descriptorCount = 1;
+	normalSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	normalSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	normalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	VkDescriptorSetLayoutBinding metallicSamplerLayoutBinding = {};
+	metallicSamplerLayoutBinding.binding = 3;
+	metallicSamplerLayoutBinding.descriptorCount = 1;
+	metallicSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	metallicSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	metallicSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	VkDescriptorSetLayoutBinding roughnessSamplerLayoutBinding = {};
+	roughnessSamplerLayoutBinding.binding = 4;
+	roughnessSamplerLayoutBinding.descriptorCount = 1;
+	roughnessSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	roughnessSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	roughnessSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 5> bindings = { 
+		uboLayoutBinding, 
+		albedoSamplerLayoutBinding, 
+		normalSamplerLayoutBinding, 
+		metallicSamplerLayoutBinding, 
+		roughnessSamplerLayoutBinding };
+
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -603,56 +686,19 @@ VkResult Dodo::Rendering::CRenderer::CreateTextureImages()
 
 	for (auto &mat : m_pMaterials)
 	{
-		CMaterial::TextureData* texData = &mat->textureData();
-		VkDeviceSize imageSize = texData->texWidth * texData->texHeight * 4;
+		CMaterial::Textures* textures = &mat->textures();
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+		result = CreateTextureImage(textures->albedo   );
+		CError::CheckError<VkResult>(result);
+		result = CreateTextureImage(textures->normal   );
+		CError::CheckError<VkResult>(result);
+		result = CreateTextureImage(textures->metallic );
+		CError::CheckError<VkResult>(result);
+		result = CreateTextureImage(textures->roughness);
+		CError::CheckError<VkResult>(result);
 
-		CreateBuffer(imageSize,
-					 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-					 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-					 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-					 stagingBuffer, stagingBufferMemory);
-		void* data;
-		vkMapMemory(m_pIntegration->device(), stagingBufferMemory, 0, imageSize, 0, &data);
-			memcpy(data, texData->pixels, static_cast<size_t>(imageSize));
-		vkUnmapMemory(m_pIntegration->device(), stagingBufferMemory);
-
-
-		stbi_image_free(texData->pixels);
-
-		CreateImage(
-			texData->texWidth, 
-			texData->texHeight, 
-			VK_FORMAT_R8G8B8A8_UNORM, 
-			VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT | 
-			VK_IMAGE_USAGE_SAMPLED_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			texData->textureImage.textureImage, 
-			texData->textureImage.textureImageMemory);
-
-		TransitionImageLayout(
-			texData->textureImage.textureImage,
-			VK_FORMAT_R8G8B8A8_UNORM,
-			VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		CopyBufferToImage(
-			stagingBuffer,
-			texData->textureImage.textureImage,
-			static_cast<uint32_t>(texData->texWidth),
-			static_cast<uint32_t>(texData->texHeight));
-		TransitionImageLayout(
-			texData->textureImage.textureImage,
-			VK_FORMAT_R8G8B8A8_UNORM, 
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		vkDestroyBuffer(m_pIntegration->device(), stagingBuffer, nullptr);
-		vkFreeMemory(m_pIntegration->device(), stagingBufferMemory, nullptr);
 	}
-
+	
 	return result;
 }
 
@@ -662,9 +708,12 @@ VkResult Dodo::Rendering::CRenderer::CreateTextureImageViews()
 
 	for (auto &mat : m_pMaterials)
 	{
-		CMaterial::TextureData* texData = &mat->textureData();
+		CMaterial::Textures* textures = &mat->textures();
 
-		texData->textureImage.textureImageView = CreateImageView(texData->textureImage.textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+		textures->albedo.   textureData.textureImageView    = CreateImageView(textures->albedo.textureData.textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+		textures->normal.   textureData.textureImageView    = CreateImageView(textures->normal.textureData.textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+		textures->metallic. textureData.textureImageView    = CreateImageView(textures->metallic.textureData.textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+		textures->roughness.textureData.textureImageView    = CreateImageView(textures->roughness.textureData.textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	}
 
@@ -695,9 +744,12 @@ VkResult Dodo::Rendering::CRenderer::CreateTextureSampler()
 
 	for (auto &mat : m_pMaterials)
 	{
-		CMaterial::TextureData* texData = &mat->textureData();
+		CMaterial::Textures* texures = &mat->textures();
 
-		result = vkCreateSampler(m_pIntegration->device(), &samplerInfo, nullptr, &texData->textureImage.textureSampler);
+		result = vkCreateSampler(m_pIntegration->device(), &samplerInfo, nullptr, &texures->albedo.textureData.textureSampler);
+		result = vkCreateSampler(m_pIntegration->device(), &samplerInfo, nullptr, &texures->normal.textureData.textureSampler);
+		result = vkCreateSampler(m_pIntegration->device(), &samplerInfo, nullptr, &texures->metallic.textureData.textureSampler);
+		result = vkCreateSampler(m_pIntegration->device(), &samplerInfo, nullptr, &texures->roughness.textureData.textureSampler);
 		CError::CheckError<VkResult>(result);
 	}
 
@@ -1002,10 +1054,9 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView   = m_pMaterials[i]->textureData().textureImage.textureImageView;
-		imageInfo.sampler	  = m_pMaterials[i]->textureData().textureImage.textureSampler;
 
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+
+		std::array<VkWriteDescriptorSet, 5> descriptorWrites = {};
 
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[0].dstSet = m_vkDescriptorSets[i];
@@ -1015,6 +1066,8 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 		descriptorWrites[0].descriptorCount = 1;
 		descriptorWrites[0].pBufferInfo = &bufferInfo;
 
+		imageInfo.imageView = m_pMaterials[i]->textures().albedo.textureData.textureImageView;
+		imageInfo.sampler   = m_pMaterials[i]->textures().albedo.textureData.textureSampler;
 		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[1].dstSet = m_vkDescriptorSets[i];
 		descriptorWrites[1].dstBinding = 1;
@@ -1022,6 +1075,36 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWrites[1].descriptorCount = 1;
 		descriptorWrites[1].pImageInfo = &imageInfo;
+
+		imageInfo.imageView = m_pMaterials[i]->textures().normal.textureData.textureImageView;
+		imageInfo.sampler   = m_pMaterials[i]->textures().normal.textureData.textureSampler;
+		descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[2].dstSet = m_vkDescriptorSets[i];
+		descriptorWrites[2].dstBinding = 2;
+		descriptorWrites[2].dstArrayElement = 0;
+		descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[2].descriptorCount = 1;
+		descriptorWrites[2].pImageInfo = &imageInfo;
+
+		imageInfo.imageView = m_pMaterials[i]->textures().metallic.textureData.textureImageView;
+		imageInfo.sampler   = m_pMaterials[i]->textures().metallic.textureData.textureSampler;
+		descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[3].dstSet = m_vkDescriptorSets[i];
+		descriptorWrites[3].dstBinding = 3;
+		descriptorWrites[3].dstArrayElement = 0;
+		descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[3].descriptorCount = 1;
+		descriptorWrites[3].pImageInfo = &imageInfo;
+
+		imageInfo.imageView = m_pMaterials[i]->textures().roughness.textureData.textureImageView;
+		imageInfo.sampler   = m_pMaterials[i]->textures().roughness.textureData.textureSampler;
+		descriptorWrites[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[4].dstSet = m_vkDescriptorSets[i];
+		descriptorWrites[4].dstBinding = 4;
+		descriptorWrites[4].dstArrayElement = 0;
+		descriptorWrites[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[4].descriptorCount = 1;
+		descriptorWrites[4].pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(
 			m_pIntegration->device(), 
@@ -1086,6 +1169,18 @@ VkResult Dodo::Rendering::CRenderer::UpdateCommandBuffers()
 					&m_vkDescriptorSets[j],
 					0,
 					nullptr);
+
+				Vector3f pos = m_pMeshes[j]->entity->GetComponent<Components::CTransform>()->getPosition();
+				vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Math::Vector3f), &pos);
+				float f = 0.5f;
+				//m_pMeshes[0]->entity->GetComponent<Components::CMaterial>()->setPushConstants(1.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+				//m_pMeshes[1]->entity->GetComponent<Components::CMaterial>()->setPushConstants(0.0f, 0.8f, 1.0f, 1.0f, 1.0f);
+
+				CMaterial::PushConsts pushConsts = m_pMeshes[j]->entity->GetComponent<Components::CMaterial>()->pushConstants();
+				pushConsts.roughness = m_pGui->uiSettings.roughness;
+				pushConsts.metallic = m_pGui->uiSettings.metallic;
+				vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(Vector3f), sizeof(CMaterial::PushConsts), &pushConsts);
+
 
 				vkCmdDrawIndexed(m_vkCommandBuffers[i], m_pMeshes[j]->m_indices.size(), 1, 0, 0, 0);
 			}

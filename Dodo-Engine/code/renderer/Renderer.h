@@ -136,6 +136,8 @@ namespace Dodo
 				VkFormat format, 
 				VkImageAspectFlags aspectFlags);
 
+			VkResult CreateTextureImage(CMaterial::Texture &_texture);
+
 // Image stuff end
 
 			VkResult CopyBuffer(
