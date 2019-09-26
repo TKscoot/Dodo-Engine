@@ -93,8 +93,8 @@ Dodo::Environment::DodoError Dodo::Components::CMesh::CreateMeshFromFile(std::st
 		{
 			vertices[currentVertexOffset + v].position  = convert(pMesh->mVertices[v]); // glm::normalize(convert(pMesh->mVertices[v]));
 			vertices[currentVertexOffset + v].normal	= convert(pMesh->mNormals[v]);
-			vertices[currentVertexOffset + v].tangent	= convert(pMesh->mTangents[v]);
 			vertices[currentVertexOffset + v].texcoords = convert2f(pMesh->mTextureCoords[0][v]);
+			vertices[currentVertexOffset + v].tangent	= convert(pMesh->mTangents[v]);
 		}
 
 		for (unsigned int j = 0; j < pMesh->mNumFaces; ++j)

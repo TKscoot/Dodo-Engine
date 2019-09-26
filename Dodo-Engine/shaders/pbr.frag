@@ -96,14 +96,14 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main()
 {
 	//vec3 albedo     = materialcolor();
-	vec4 albedo     = texture(albedoSampler, inTexCoord);
+	vec3 albedo     = pow(texture(albedoSampler, inTexCoord).rgb, vec3(2.2));
     float metallic  = texture(metallicSampler,   inTexCoord).r;
     float roughness = texture(roughnessSampler,  inTexCoord).r;
-	metallic = material.metallic;
-	roughness = material.roughness;
+	//metallic = material.metallic;
+	//roughness = material.roughness;
 
-    vec3 N = normalize(inNormal);
-    //vec3 N = getNormalFromMap();
+    //vec3 N = normalize(inNormal);
+    vec3 N = getNormalFromMap();
     vec3 V = normalize(ubo.camPos - inWorldPos);
 
     vec3 F0 = vec3(0.04);
@@ -166,5 +166,5 @@ void main()
     color = pow(color, vec3(1.0/2.2));
 
     //outColor = vec4(color, 1.0);
-	outColor = texture(albedoSampler, inTexCoord);
+	outColor = vec4(color, 1.0);
 }

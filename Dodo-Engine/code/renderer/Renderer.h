@@ -81,6 +81,8 @@ namespace Dodo
 			VkRenderPass renderPass() { return m_vkRenderPass; }
 			double const deltaTime() const { return m_dDeltaTime; }
 			VkExtent2D const swapExtent() const { return m_vkSwapChainExtent; }
+			void DrawGui(bool enabled) { m_bDrawGui = enabled; }
+			void ToggleDrawGui() { m_bDrawGui = !m_bDrawGui; }
 
 			VkResult UpdateCommandBuffers();
 
@@ -218,6 +220,7 @@ namespace Dodo
 			std::shared_ptr<Entity::CCamera> m_pCamera;
 
 			std::shared_ptr<GUI> m_pGui;
+			bool m_bDrawGui = true;
 			float m_fFrameTimeCounter = 0.0f;
 
 			uint32_t	   m_iCurrentFrame      = 0;

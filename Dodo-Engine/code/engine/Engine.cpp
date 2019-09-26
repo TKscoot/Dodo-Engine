@@ -61,37 +61,36 @@ namespace Dodo::Engine
 		//mat1->SetTexture("resources/textures/WoodBox/default.jpg");
 		mat1->SetTextures(
 			//"resources/textures/RustedIron/rustediron2_basecolor.png",
-			"resources/textures/Grass.jpg",
-
-			"resources/textures/RustedIron/rustediron2_normal.png",
-			"resources/textures/RustedIron/rustediron2_metallic.png",
-			"resources/textures/RustedIron/rustediron2_metallic.png");
-		std::shared_ptr<Components::CMaterial> mat2 = pepeEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		//mat2->SetTexture("resources/textures/pepe_text.png");
-		mat2->SetTextures(
-				"resources/textures/pepe_text.png",
-				"resources/textures/grey.png",
-				"resources/textures/grey.png",
-				"resources/textures/grey.png");
-		std::shared_ptr<Components::CMaterial> mat3 = floorEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		//mat3->SetTexture("resources/textures/Grass.jpg");
-		mat3->SetTextures(
 			"resources/textures/RustedIron/rustediron2_basecolor.png",
 			"resources/textures/RustedIron/rustediron2_normal.png",
 			"resources/textures/RustedIron/rustediron2_metallic.png",
 			"resources/textures/grey.png");
+		std::shared_ptr<Components::CMaterial> mat2 = pepeEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		//mat2->SetTexture("resources/textures/pepe_text.png");
+		mat2->SetTextures(
+			"resources/textures/pepe_text.png",
+			"resources/textures/default_normal.png",
+			"resources/textures/grey.png",
+			"resources/textures/grey.png");
+		std::shared_ptr<Components::CMaterial> mat3 = floorEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		//mat3->SetTexture("resources/textures/Grass.jpg");
+		mat3->SetTextures(
+			"resources/textures/Tiles/Tiles32_col.jpg",
+			"resources/textures/Tiles/Tiles32_nrm.jpg",
+			"resources/textures/Tiles/Tiles32_disp.jpg",
+			"resources/textures/Tiles/Tiles32_rgh.jpg");
 
 		auto boxTrans = boxEntity->AddComponent<Components::CTransform>();
-		//boxTrans->setScale(Math::Vector3f(0.05f));
-		boxTrans->setPositionX(5.0f);
+		boxTrans->setScale(Math::Vector3f(2.0f));
+		boxTrans->setPositionX(0.0f);
 		auto floorTrans = floorEntity->AddComponent<Components::CTransform>();
 		floorTrans->setPositionY(-0.3f);
-		floorTrans->setPositionX(20.0f);
+		floorTrans->setPositionX(0.5f);
 		floorTrans->setScaleX(20.0f);
 		floorTrans->setScaleY(20.0f);
 		floorTrans->setScaleZ(20.0f);
 		auto pepeTrans  = pepeEntity->AddComponent<Components::CTransform>();
-		pepeTrans->setPosition(Math::Vector3f(7.5f, 0.0f, 0.0f));
+		pepeTrans->setPosition(Math::Vector3f(5.0f, 0.0f, 0.0f));
 		pepeTrans->setScale(Math::Vector3f(3.0f));
 
 
@@ -103,7 +102,7 @@ namespace Dodo::Engine
 		};
 
 		//mesh1->CreateMeshFromFile("resources/models/sponza.obj");
-		mesh1->CreateMeshFromFile("resources/models/bunny.obj");
+		mesh1->CreateMeshFromFile("resources/models/uv-sphere.fbx");
 		mesh2->CreateMeshFromFile("resources/models/pepeWithNormals.obj");
 		mesh3->CreateMeshFromFile("resources/models/Sci-Fi-Floor-1-OBJ.obj");
 
@@ -174,6 +173,11 @@ namespace Dodo::Engine
 		{
 			ent->UpdateComponents();
 			ent->Update();
+		}
+
+		if (CInput::IsKeyPressed(KeyCode::KEY_G))
+		{
+			m_pRenderer->ToggleDrawGui();
 		}
 
 		return DodoError::DODO_OK;

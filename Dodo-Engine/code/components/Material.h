@@ -93,10 +93,11 @@ namespace Dodo
 			{
 				struct TextureData
 				{
-					VkImage		   textureImage       = VK_NULL_HANDLE;
-					VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
-					VkImageView	   textureImageView	  = VK_NULL_HANDLE;
-					VkSampler	   textureSampler	  = VK_NULL_HANDLE;
+					VkImage				  textureImage       = VK_NULL_HANDLE;
+					VkDeviceMemory		  textureImageMemory = VK_NULL_HANDLE;
+					VkImageView			  textureImageView	 = VK_NULL_HANDLE;
+					VkSampler			  textureSampler	 = VK_NULL_HANDLE;
+					VkDescriptorImageInfo imageInfo			 = {};
 				};
 
 
@@ -175,9 +176,9 @@ namespace Dodo
 			Textures& const textures() { return m_textures; }
 			void SetTextures(std::string _albedo, std::string _normal, std::string _metallic, std::string _roughness)
 			{ 
-				m_textures.albedo   .filename	  = _albedo;
-				m_textures.normal   .filename    = _normal;
-				m_textures.metallic .filename  = _metallic;
+				m_textures.albedo   .filename = _albedo;
+				m_textures.normal   .filename = _normal;
+				m_textures.metallic .filename = _metallic;
 				m_textures.roughness.filename = _roughness;
 
 				LoadTexture(m_textures.albedo);
