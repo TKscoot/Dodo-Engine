@@ -78,6 +78,9 @@
     <ClCompile Include="code\environment\Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\renderer\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\environment\Window.h">
@@ -296,6 +299,9 @@
     <ClInclude Include="code\environment\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="code\renderer\Skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\default.frag" />
@@ -303,6 +309,8 @@
     <None Include="shaders\ui.frag" />
     <None Include="shaders\ui.vert" />
     <None Include="shaders\pbr.frag" />
+    <None Include="shaders\skybox.frag" />
+    <None Include="shaders\skybox.vert" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ext\assimp\lib\assimp-vc140-mt.lib" />

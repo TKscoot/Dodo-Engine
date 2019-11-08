@@ -3,6 +3,7 @@
 #include "common/VKIntegration.h"
 #include "VulkanInitializers.h"
 #include "entity/Entity.h"
+#include "entity/EntityHandler.h"
 //#include "engine/Engine.h"
 #include "VulkanBuffer.h"
 #include "common/VKHelpers.h"
@@ -14,16 +15,6 @@ namespace Dodo
 	namespace Rendering
 	{
 		
-		void setImageLayout(
-			VkCommandBuffer cmdbuffer,
-			VkImage image,
-			VkImageLayout oldImageLayout,
-			VkImageLayout newImageLayout,
-			VkImageSubresourceRange subresourceRange,
-			VkPipelineStageFlags srcStageMask,
-			VkPipelineStageFlags dstStageMask);
-
-
 		struct UISettings
 		{
 			bool displayModels = true;
@@ -58,7 +49,7 @@ namespace Dodo
 			VkResult CreateRenderPass(VkFormat swapChainFormat, VkFormat depthFormat);
 			VkResult CreateFramebuffers(std::vector<VkImageView> imageViews, VkImageView depthImageView, VkExtent2D extent);
 			DodoError NewFrame(double deltaTime, bool updateFrameGraph);
-			DodoError CreateCommandBuffer(std::vector<VkFramebuffer> _frameBuffers, VkCommandPool _commandPool);
+			DodoError CreateCommandBuffer(std::vector<VkFramebuffer> *_frameBuffers, VkCommandPool _commandPool);
 			bool UpdateBuffers();
 			DodoError DrawFrame(
 				VkExtent2D extend, 

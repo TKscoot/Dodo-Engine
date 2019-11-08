@@ -8,6 +8,7 @@
 #include "entity/EntityHandler.h"
 #include "entity/Camera.h"
 #include "GUI.h"
+#include "Skybox.h"
 
 namespace Dodo
 {
@@ -25,13 +26,9 @@ namespace Dodo
 			};
 
 		public:
-			CRenderer(std::vector<std::shared_ptr<Components::CMesh>> _meshes, 
-				std::vector<std::shared_ptr<Components::CMaterial>> _materials, 
-				std::shared_ptr<Entity::CCamera> _camera,
+			CRenderer(std::shared_ptr<Entity::CCamera> _camera,
 				std::vector<std::shared_ptr<Entity::CEntity>> _entities)
-				: //m_pMeshes(_meshes),
-				//m_pMaterials(_materials),
-				m_pCamera(_camera),
+				: m_pCamera(_camera),
 				m_pEntities(_entities)
 			{
 				m_pMaterials.clear();
@@ -222,6 +219,8 @@ namespace Dodo
 			std::shared_ptr<GUI> m_pGui;
 			bool m_bDrawGui = true;
 			float m_fFrameTimeCounter = 0.0f;
+
+			std::shared_ptr<CSkybox> m_pSkybox;
 
 			uint32_t	   m_iCurrentFrame      = 0;
 			const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

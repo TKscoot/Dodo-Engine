@@ -36,9 +36,6 @@ namespace Dodo::Engine
 
 		m_pCamera = std::make_shared<Entity::CCamera>();
 		m_pCamera->setName("Camera");
-		//m_pCamera->GetComponent<Components::CTransform>()->setPosition(Math::Vector3f(15.0f, -15.0f, 0.0f));
-		//m_pCamera->GetComponent<Components::CTransform>()->setPosition(Math::Vector3f(0.0f, 1.0f, 0.0f));
-		//m_pCamera->GetComponent<Components::CTransform>()->SetParent(nullptr);
 		m_pCamera->setPerspective(60.0f, m_v2WindowDimensions.x / m_v2WindowDimensions.y, 0.001f, 2048.0f);	// TODO: use current swap extent for aspect ratio
 		m_pCamera->Update();
 
@@ -46,9 +43,6 @@ namespace Dodo::Engine
 		Components::CMaterial::ShaderInfo shaderInfo;
 		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
 		shaderInfo.fragmentShaderFileName = "shaders/pbr.frag.spv";
-
-		//std::shared_ptr<Entity::CEntity> boxEntity = std::make_shared<Entity::CEntity>();
-		//std::shared_ptr<Entity::CEntity> pepeEntity = std::make_shared<Entity::CEntity>();
 
 		Entity::CEntity* boxEntity   = new Entity::CEntity("Quad");
 		Entity::CEntity* pepeEntity  = new Entity::CEntity("Pepe");
@@ -58,22 +52,18 @@ namespace Dodo::Engine
 		std::shared_ptr<Components::CMesh> mesh2 = pepeEntity->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMesh> mesh3 = floorEntity->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMaterial> mat1 = boxEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		//mat1->SetTexture("resources/textures/WoodBox/default.jpg");
 		mat1->SetTextures(
-			//"resources/textures/RustedIron/rustediron2_basecolor.png",
 			"resources/textures/RustedIron/rustediron2_basecolor.png",
 			"resources/textures/RustedIron/rustediron2_normal.png",
 			"resources/textures/RustedIron/rustediron2_metallic.png",
 			"resources/textures/grey.png");
 		std::shared_ptr<Components::CMaterial> mat2 = pepeEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		//mat2->SetTexture("resources/textures/pepe_text.png");
 		mat2->SetTextures(
 			"resources/textures/pepe_text.png",
 			"resources/textures/default_normal.png",
 			"resources/textures/grey.png",
 			"resources/textures/grey.png");
 		std::shared_ptr<Components::CMaterial> mat3 = floorEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		//mat3->SetTexture("resources/textures/Grass.jpg");
 		mat3->SetTextures(
 			"resources/textures/Tiles/Tiles32_col.jpg",
 			"resources/textures/Tiles/Tiles32_nrm.jpg",
@@ -93,15 +83,6 @@ namespace Dodo::Engine
 		pepeTrans->setPosition(Math::Vector3f(5.0f, 0.0f, 0.0f));
 		pepeTrans->setScale(Math::Vector3f(3.0f));
 
-
-		std::vector<Vertex> vertices =
-		{
-			{{0.5f, -0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f,  0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f},	 {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f},	 {0.0f, 0.0f, 1.0f}}
-		};
-
-		//mesh1->CreateMeshFromFile("resources/models/sponza.obj");
 		mesh1->CreateMeshFromFile("resources/models/uv-sphere.fbx");
 		mesh2->CreateMeshFromFile("resources/models/pepeWithNormals.obj");
 		mesh3->CreateMeshFromFile("resources/models/Sci-Fi-Floor-1-OBJ.obj");
@@ -111,14 +92,10 @@ namespace Dodo::Engine
 		{
 			entities.push_back(std::shared_ptr<Entity::CEntity>(ent));
 		}
-		std::vector<std::shared_ptr<Components::CMaterial>> materials = {mat1 , mat2, mat3 };
-		std::vector<std::shared_ptr<Components::CMesh>> meshes = { mesh1, mesh2, mesh3 };
-
 
 		// renderer init
-		m_pRenderer = std::make_shared<Rendering::CRenderer>(meshes, materials, m_pCamera, entities);
+		m_pRenderer = std::make_shared<Rendering::CRenderer>(m_pCamera, entities);
 		m_pRenderer->Initialize(m_pVulkanIntegration, m_pWindow);
-
 
 		CLog::Message("======== Engine Initialized! ========");
 
@@ -150,16 +127,6 @@ namespace Dodo::Engine
 			std::chrono::duration<double> delta = newtime - lastTime;
 			m_deltaTime = delta.count();
 
-			//m_fTimer += m_deltaTime;
-			//
-			//if (m_fTimer >= 1.0f)
-			//{
-			//	float fps = 1.0 / m_deltaTime;
-			//	char buf[10];
-			//	sprintf_s(buf, "%.1f", fps);
-			//	glfwSetWindowTitle(m_pWindow->GetWindow(), buf);
-			//	m_fTimer = 0.0f;
-			//}
 			newtime = lastTime;
 		}
 		

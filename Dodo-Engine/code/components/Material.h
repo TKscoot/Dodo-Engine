@@ -6,6 +6,7 @@
 #include "ECS.h"
 #include "Mesh.h"
 #include <stb/stb_image.h>
+#include <variant>
 
 namespace Dodo
 {
@@ -187,6 +188,8 @@ namespace Dodo
 				LoadTexture(m_textures.roughness);
 			}
 
+			void SetAlbedoTextureData(Texture _textureData) { m_textures.albedo = _textureData; }
+
 			PushConsts& const pushConstants() { return pushConsts; }
 			void setPushConstants(float roughness, float metallic, float r, float g, float b) 
 			{
@@ -197,12 +200,12 @@ namespace Dodo
 				pushConsts.b = b;
 			}
 
-
+			
 		protected:
 			Shaders     m_shaders	 = {};
 			ShaderInfo  m_shaderInfo = {};
 			Textures    m_textures	 = {};
-			PushConsts  pushConsts   = {};
+			PushConsts  pushConsts   = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
 		};

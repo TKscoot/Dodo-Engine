@@ -33,10 +33,12 @@ DodoError Dodo::Rendering::CRenderer::Initialize(std::shared_ptr<VKIntegration> 
 	m_pGui->CreateFramebuffers(m_vkSwapChainImageViews, m_vkDepthImageView, m_vkSwapChainExtent);
 	m_pGui->Initialize(m_vkRenderPass, m_vkSwapChainExtent.width, m_vkSwapChainExtent.height);
 
+	// Skybox
+	m_pSkybox = std::make_shared<CSkybox>(m_pIntegration, m_vkRenderPass, m_vkCommandPool, m_vkSwapChainExtent);
+	m_pSkybox->Initialize();
+
 	CreateCommandBuffers();
 	CreateSyncObjects();
-
-
 
 	return DODO_OK;
 }
@@ -58,12 +60,8 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 							   std::numeric_limits<uint64_t>::max());
 	CError::CheckError<VkResult>(vkResult);
 
-
-
-
 	vkResult = vkResetFences(m_pIntegration->device(), 1, &m_sSyncObjects.inFlightFences[m_iCurrentFrame]);
 	CError::CheckError<VkResult>(vkResult);
-
 
 	vkResult = vkAcquireNextImageKHR(m_pIntegration->device(), 
 									 m_vkSwapChain, 
@@ -86,6 +84,7 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 
 	// Update uniform buffers here!!
 	UpdateUniformBuffer();
+	m_pSkybox->UpdateUniformBuffer(m_pCamera);
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -93,14 +92,18 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 	std::vector<VkSemaphore> waitSemaphores	  = { m_sSyncObjects.imageAvailableSemaphores[m_iCurrentFrame] };
 	std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	std::vector<VkCommandBuffer> commandBuffers;
+
 	if (m_bDrawGui)
 	{
-		commandBuffers = {m_vkCommandBuffers.at(imageIndex), m_pGui->m_vkCommandBuffers.at(imageIndex)};
+		commandBuffers = { 
+						   m_vkCommandBuffers.at(imageIndex),
+						   m_pGui->m_vkCommandBuffers.at(imageIndex)
+						  };
 
 	}
 	else
 	{
-		commandBuffers = { m_vkCommandBuffers.at(imageIndex) };
+		commandBuffers = { m_vkCommandBuffers.at(imageIndex)};
 	}
 
 	submitInfo.waitSemaphoreCount	= 1;
@@ -142,7 +145,7 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 			std::numeric_limits<uint64_t>::max()) == VK_SUCCESS)
 		{
 			//UpdateCommandBuffers();
-
+	
 			if (m_fFrameTimeCounter >= 1.0f)
 			{
 				m_pGui->NewFrame(deltaTime, true);
@@ -152,7 +155,7 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 			{
 				m_pGui->NewFrame(deltaTime, false);
 			}
-
+	
 			if (m_pGui->UpdateBuffers())
 			{
 				m_pGui->DrawFrame(m_vkSwapChainExtent, m_vkRenderPass, m_vkSwapChainFramebuffers, deltaTime);
@@ -914,11 +917,10 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 	CError::CheckError<VkResult>(result);
 
 	//GUI
-	m_pGui->CreateCommandBuffer(m_vkSwapChainFramebuffers, m_vkCommandPool);
+	m_pGui->CreateCommandBuffer(&m_vkSwapChainFramebuffers, m_vkCommandPool);
 	m_pGui->NewFrame(deltaTime(), true);
 	m_pGui->UpdateBuffers();
 	m_pGui->DrawFrame(m_vkSwapChainExtent, m_vkRenderPass, m_vkSwapChainFramebuffers);
-
 	
 	for (size_t i = 0; i < m_vkCommandBuffers.size(); i++)
 	{
@@ -946,27 +948,29 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 	
 		vkCmdBeginRenderPass(m_vkCommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	
+		// Skybox
+		m_pSkybox->BuildOnMainCmdBuf(m_vkCommandBuffers[i]);
+
 		vkCmdBindPipeline(m_vkCommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_vkGraphicsPipeline);
-		
+
 		//std::vector<VkBuffer> vertexBuffers = {};
 		VkBuffer *vertexBuffers = new VkBuffer[m_matDataBuffers.size()];
-		VkDeviceSize offsets[] = {0};
+		VkDeviceSize offsets[1] = { 0 };
+
 		for (int j = 0; j < m_pMeshes.size(); j++)
 		{
-			vertexBuffers[j] = m_matDataBuffers[j].vertexBuffer;
-	
-			vkCmdBindVertexBuffers(m_vkCommandBuffers[i], 0, 1, &m_matDataBuffers[j].vertexBuffer, offsets);	// evtl buggy bei mehreren vertex buffern
+
+			vkCmdBindVertexBuffers(m_vkCommandBuffers[i], 0, 1, &m_pMeshes[j]->m_dataBuffers.vertexBuffer, offsets);
 			vkCmdBindIndexBuffer(m_vkCommandBuffers[i], m_pMeshes[j]->m_dataBuffers.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdBindDescriptorSets(m_vkCommandBuffers[i], 
-									VK_PIPELINE_BIND_POINT_GRAPHICS, 
-									m_vkPipelineLayout, 
-									0, 
-									1, 
-									&m_vkDescriptorSets[j], 
-									0, 
-									nullptr);
+			vkCmdBindDescriptorSets(m_vkCommandBuffers[i],
+				VK_PIPELINE_BIND_POINT_GRAPHICS,
+				m_vkPipelineLayout,
+				0,
+				1,
+				&m_vkDescriptorSets[j],
+				0,
+				nullptr);
 
 			Vector3f pos = m_pMeshes[j]->entity->GetComponent<Components::CTransform>()->getPosition();
 			vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Math::Vector3f), &pos);
@@ -981,10 +985,14 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 
 			vkCmdDrawIndexed(m_vkCommandBuffers[i], m_pMeshes[j]->m_indices.size(), 1, 0, 0, 0);
 		}
-	
+
+
+
 		vkCmdEndRenderPass(m_vkCommandBuffers[i]);
 		result = vkEndCommandBuffer(m_vkCommandBuffers[i]);
 		CError::CheckError<VkResult>(result);
+
+
 	}
 
 
@@ -1445,14 +1453,11 @@ VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer()
 		CMaterial::UniformBufferObject ubo = {};
 		if (m_pTransforms[i] != nullptr)
 		{
-			//m_pTransforms[i]->setPositionY(time * 0.005f);
-		ubo.model	   = m_pTransforms[i]->getComposed();
-
+			ubo.model	   = m_pTransforms[i]->getComposed();
 		}
 		else
 		{
-		ubo.model	   = glm::rotate(glm::mat4(1.0f), time *  glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
+			ubo.model	   = glm::rotate(glm::mat4(1.0f), time *  glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
 		ubo.camPos     = m_pCamera->cameraPos;
 		ubo.View	   = m_pCamera->getViewMatrix();
@@ -1464,7 +1469,6 @@ VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer()
 			memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(m_pIntegration->device(), m_vkUniformBuffersMemory[i]);
 	}
-
 
 	return VK_SUCCESS;
 }
@@ -1529,6 +1533,9 @@ VkResult Dodo::Rendering::CRenderer::RecreateSwapChain()
 	CreateDepthResources();
 	CreateFramebuffers();
 	m_pGui->CreateFramebuffers(m_vkSwapChainImageViews, m_vkDepthImageView, m_vkSwapChainExtent);
+	m_pSkybox->SetRenderPass(m_vkRenderPass);
+	m_pSkybox->SetExtent(m_vkSwapChainExtent);
+	m_pSkybox->CreatePipeline();
 	CreateUniformBuffers();
 	CreateDescriptorPool();
 	CreateDescriptorSets();

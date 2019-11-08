@@ -41,6 +41,7 @@
     <ClCompile Include="code\renderer\Renderer.cpp" />
     <ClCompile Include="code\environment\Log.cpp" />
     <ClCompile Include="code\entity\EntityHandler.cpp" />
+    <ClCompile Include="code\renderer\Skybox.cpp" />
     <ClCompile Include="ext\imgui\imgui.cpp" />
     <ClCompile Include="ext\imgui\imgui_demo.cpp" />
     <ClCompile Include="ext\imgui\imgui_draw.cpp" />
@@ -63,6 +64,7 @@
     <ClInclude Include="code\components\Material.h" />
     <ClInclude Include="code\renderer\GUI.h" />
     <ClInclude Include="code\renderer\Renderer.h" />
+    <ClInclude Include="code\renderer\Skybox.h" />
     <ClInclude Include="code\renderer\VulkanBuffer.h" />
     <ClInclude Include="code\renderer\VulkanInitializers.h" />
     <ClInclude Include="ext\imgui\imgui.h" />
@@ -124,6 +126,8 @@
     <None Include="shaders\default.frag" />
     <None Include="shaders\default.vert" />
     <None Include="shaders\pbr.frag" />
+    <None Include="shaders\skybox.frag" />
+    <None Include="shaders\skybox.vert" />
     <None Include="shaders\ui.frag" />
     <None Include="shaders\ui.vert" />
   </ItemGroup>

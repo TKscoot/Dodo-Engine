@@ -47,6 +47,7 @@ namespace Dodo
 			QueueFamilies			   const queueFamilies()   const { return m_queueFamilies; }
 			Queues					   const queues()		   const { return m_queues; }
 			VkPhysicalDeviceProperties const physDeviceProps() const { return m_vkDeviceProps; }
+			VkPhysicalDeviceFeatures   const physDevFeatures() const { return m_vkDeviceFeatures; }
 
 
 		private:

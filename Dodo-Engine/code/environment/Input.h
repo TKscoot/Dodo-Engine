@@ -156,6 +156,7 @@ namespace Dodo
 			static Math::Vector2f GetMousePosition();
 			static bool IsMouseKeyPressed(MouseKeyCode key);
 
+			static Math::Vector2f m_lastMousePos;
 
 		private:
 
@@ -169,7 +170,6 @@ namespace Dodo
 
 			static std::shared_ptr<CWindow> m_pWindow;
 
-			static Math::Vector2f m_lastMousePos;
 
 			static bool toggleMouse;
 		}; 

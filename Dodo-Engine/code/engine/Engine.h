@@ -13,6 +13,7 @@
 #include "entity/Entity.h"
 #include "entity/Camera.h"
 #include "renderer/GUI.h"
+#include "renderer/Skybox.h"
 
 
 namespace Dodo

@@ -15,7 +15,7 @@ VkResult Dodo::Rendering::VKIntegration::CreateInstance()
 	appInfo.engineVersion = VK_MAKE_VERSION(0, 1, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_1;
 
-	VkInstanceCreateInfo instanceInfo= {};
+	VkInstanceCreateInfo instanceInfo = {};
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.flags = 0;
 	instanceInfo.pApplicationInfo = &appInfo;
@@ -24,7 +24,7 @@ VkResult Dodo::Rendering::VKIntegration::CreateInstance()
 
 	instanceInfo.enabledExtensionCount = extensions.size();
 	instanceInfo.ppEnabledExtensionNames = extensions.data();
-	instanceInfo.ppEnabledLayerNames = validationLayers.data();	//evtl noch einbauen
+	instanceInfo.ppEnabledLayerNames = validationLayers.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 
 
