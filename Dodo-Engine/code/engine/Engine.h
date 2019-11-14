@@ -14,6 +14,7 @@
 #include "entity/Camera.h"
 #include "renderer/GUI.h"
 #include "renderer/Skybox.h"
+#include "components/Terrain.h"
 
 
 namespace Dodo
@@ -50,6 +51,7 @@ namespace Dodo
 
 			glm::vec2 m_v2WindowDimensions;
 			static double m_deltaTime;
+			float timer = 0.0;
 		};
 	}
 }

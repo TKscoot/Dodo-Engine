@@ -28,7 +28,8 @@ namespace Dodo
 			
 
 
-			LoadCubemap("resources/textures/cubemap_yokohama_bc3_unorm.ktx", VK_FORMAT_BC3_UNORM_BLOCK);
+			//LoadCubemap("resources/textures/cubemap_yokohama_bc3_unorm.ktx", VK_FORMAT_BC3_UNORM_BLOCK);
+			LoadCubemap("resources/textures/UnitySkybox/OutputCube.dds", VK_FORMAT_B8G8R8A8_UNORM);
 
 			CreateVertIdxBuffers();
 			SetDescriptorSetLayout();
@@ -44,14 +45,54 @@ namespace Dodo
 		{
 			VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
+			std::array<gli::texture2d, 6> gliTextures;
+			std::array<Components::CMaterial::Texture, 6> cubeTextures;
+			cubeTextures[0].filename = "resources/textures/UnitySkybox/sky8_RT.pgm.ktx";
+			cubeTextures[1].filename = "resources/textures/UnitySkybox/sky8_LF.pgm.ktx";
+			cubeTextures[2].filename = "resources/textures/UnitySkybox/sky8_UP.pgm.ktx";
+			cubeTextures[3].filename = "resources/textures/UnitySkybox/sky8_DN.pgm.ktx";
+			cubeTextures[4].filename = "resources/textures/UnitySkybox/sky8_BK.pgm.ktx";
+			cubeTextures[5].filename = "resources/textures/UnitySkybox/sky8_FR.pgm.ktx";
+			
+			for (int i = 0; i < cubeTextures.size(); i++)
+			{
+				int texWidth, texHeight, texChannels;
+			
+			
+				stbi_uc* pixels = stbi_load(cubeTextures[i].filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+				gli::texture2d tex = gli::texture2d(gli::load(cubeTextures[i].filename));
+				gliTextures[i] = tex;
+
+
+			
+				if (!pixels)
+				{
+					CLog::Error("Failed to load texture image!");
+				}
+			
+			
+				cubeTextures[i].texWidth = texWidth;
+				cubeTextures[i].texHeight = texHeight;
+				cubeTextures[i].texChannels = texChannels;
+				cubeTextures[i].pixels = pixels;
+				cubeTextures[i].mipLevels = 1;
+			}
+
 			gli::texture_cube texCube(gli::load(_filename));
+			//texCube[0] = gliTextures[0];
+			//texCube[1] = gliTextures[1];
+			//texCube[2] = gliTextures[2];
+			//texCube[3] = gliTextures[3];
+			//texCube[4] = gliTextures[4];
+			//texCube[5] = gliTextures[5];
 
 			assert(!texCube.empty());
 
-			m_cubeMap.pixels = static_cast<stbi_uc*>( texCube.data());
+			m_cubeMap.pixels = (stbi_uc*)texCube.data();
 			m_cubeMap.texWidth = texCube.extent().x;
 			m_cubeMap.texHeight = texCube.extent().y;
-			//m_cubeMap.mipLevels = texCube.levels();
+			m_cubeMap.mipLevels = texCube.levels();
 
 			VkMemoryAllocateInfo memAllocInfo = vks::initializers::memoryAllocateInfo();
 			VkMemoryRequirements memReqs;

@@ -22,6 +22,7 @@
     <ClCompile Include="code\components\ECS.cpp" />
     <ClCompile Include="code\components\Material.cpp" />
     <ClCompile Include="code\components\Mesh.cpp" />
+    <ClCompile Include="code\components\Terrain.cpp" />
     <ClCompile Include="code\components\Transform.cpp" />
     <ClCompile Include="code\entity\Camera.cpp" />
     <ClCompile Include="code\dodopch.cpp">
@@ -49,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\components\Mesh.h" />
+    <ClInclude Include="code\components\Terrain.h" />
     <ClInclude Include="code\entity\Camera.h" />
     <ClInclude Include="code\dodopch.h" />
     <ClInclude Include="code\common\DodoTypes.h" />

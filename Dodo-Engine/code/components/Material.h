@@ -106,6 +106,7 @@ namespace Dodo
 				int			 texWidth	  = 0;
 				int			 texHeight    = 0;
 				int			 texChannels  = 0;
+				int			 mipLevels	  = 1;
 				stbi_uc*	 pixels		  = nullptr;
 				TextureData  textureData  = {};
 
@@ -208,18 +209,6 @@ namespace Dodo
 			PushConsts  pushConsts   = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
-		};
-
-		class TestMaterial : public CMaterial
-		{
-		public:
-			using CMaterial::CMaterial;
-
-			//DodoError Create()     { return DODO_OK; }
-			//DodoError Initialize() { return DODO_OK; }
-			//DodoError Finalize()   { return DODO_OK; }
-			//DodoError Update()     { return DODO_OK; }
-			//DodoError Commit()     { return DODO_OK; }
 		};
 	}
 }

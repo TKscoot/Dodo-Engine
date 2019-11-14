@@ -44,19 +44,19 @@ namespace Dodo::Engine
 		shaderInfo.vertexShaderFileName   = "shaders/default.vert.spv";
 		shaderInfo.fragmentShaderFileName = "shaders/pbr.frag.spv";
 
-		Entity::CEntity* boxEntity   = new Entity::CEntity("Quad");
+		//Entity::CEntity* boxEntity   = new Entity::CEntity("Quad");
 		Entity::CEntity* pepeEntity  = new Entity::CEntity("Pepe");
 		Entity::CEntity* floorEntity = new Entity::CEntity("Floor");
 		
-		std::shared_ptr<Components::CMesh> mesh1 = boxEntity->AddComponent<Components::CMesh>();
+		//std::shared_ptr<Components::CMesh> mesh1 = boxEntity->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMesh> mesh2 = pepeEntity->AddComponent<Components::CMesh>();
 		std::shared_ptr<Components::CMesh> mesh3 = floorEntity->AddComponent<Components::CMesh>();
-		std::shared_ptr<Components::CMaterial> mat1 = boxEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
-		mat1->SetTextures(
-			"resources/textures/RustedIron/rustediron2_basecolor.png",
-			"resources/textures/RustedIron/rustediron2_normal.png",
-			"resources/textures/RustedIron/rustediron2_metallic.png",
-			"resources/textures/grey.png");
+		//std::shared_ptr<Components::CMaterial> mat1 = boxEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		//mat1->SetTextures(
+		//	"resources/textures/RustedIron/rustediron2_basecolor.png",
+		//	"resources/textures/RustedIron/rustediron2_normal.png",
+		//	"resources/textures/RustedIron/rustediron2_metallic.png",
+		//	"resources/textures/grey.png");
 		std::shared_ptr<Components::CMaterial> mat2 = pepeEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
 		mat2->SetTextures(
 			"resources/textures/pepe_text.png",
@@ -70,9 +70,10 @@ namespace Dodo::Engine
 			"resources/textures/Tiles/Tiles32_disp.jpg",
 			"resources/textures/Tiles/Tiles32_rgh.jpg");
 
-		auto boxTrans = boxEntity->AddComponent<Components::CTransform>();
-		boxTrans->setScale(Math::Vector3f(2.0f));
-		boxTrans->setPositionX(0.0f);
+		//auto boxTrans = boxEntity->AddComponent<Components::CTransform>();
+		//boxTrans->setScale(Math::Vector3f(2.0f));
+		//boxTrans->setRotation(90.0f, 0.0f, 0.0f);
+		////boxTrans->setPositionX(-10.0f);
 		auto floorTrans = floorEntity->AddComponent<Components::CTransform>();
 		floorTrans->setPositionY(-0.3f);
 		floorTrans->setPositionX(0.5f);
@@ -83,9 +84,28 @@ namespace Dodo::Engine
 		pepeTrans->setPosition(Math::Vector3f(5.0f, 0.0f, 0.0f));
 		pepeTrans->setScale(Math::Vector3f(3.0f));
 
-		mesh1->CreateMeshFromFile("resources/models/uv-sphere.fbx");
+
+		//mesh1->CreateMeshFromFile("resources/models/uv-sphere.fbx");
 		mesh2->CreateMeshFromFile("resources/models/pepeWithNormals.obj");
 		mesh3->CreateMeshFromFile("resources/models/Sci-Fi-Floor-1-OBJ.obj");
+
+
+
+		// Terrain testing
+		
+		Entity::CEntity* terrainEntity = new Entity::CEntity("Terrain");
+		std::shared_ptr<Components::CTerrain> terrain = terrainEntity->AddComponent<Components::CTerrain>(64, 1.0f);
+		std::shared_ptr<Components::CMaterial> terrainMat = terrainEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
+		terrainMat->SetTextures(
+			"resources/textures/RustedIron/rustediron2_basecolor.png",
+			"resources/textures/RustedIron/rustediron2_normal.png",
+			"resources/textures/RustedIron/rustediron2_metallic.png",
+			"resources/textures/grey.png");
+		auto terrainTrans = terrainEntity->AddComponent<Components::CTransform>();
+
+		// Terrain testing END
+
+
 
 		std::vector<std::shared_ptr<Dodo::Entity::CEntity>> entities = {};
 		for (auto &ent : Entity::CEntityHandler::GetEntities())
@@ -140,6 +160,7 @@ namespace Dodo::Engine
 		{
 			ent->UpdateComponents();
 			ent->Update();
+			
 		}
 
 		if (CInput::IsKeyPressed(KeyCode::KEY_G))

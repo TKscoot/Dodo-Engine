@@ -9,6 +9,7 @@
 #include "entity/Camera.h"
 #include "GUI.h"
 #include "Skybox.h"
+#include "components/Terrain.h"
 
 namespace Dodo
 {
@@ -46,6 +47,12 @@ namespace Dodo
 					if (mesh != nullptr)
 					{
 						m_pMeshes.push_back(mesh);
+					}
+
+					std::shared_ptr<CTerrain> terrain = std::shared_ptr<CTerrain>{ ent->GetComponent<CTerrain>() };
+					if (terrain != nullptr)
+					{
+						m_pMeshes.push_back(terrain);
 					}
 
 					std::shared_ptr<CTransform> transform = std::shared_ptr<CTransform>{ ent->GetComponent<CTransform>() };

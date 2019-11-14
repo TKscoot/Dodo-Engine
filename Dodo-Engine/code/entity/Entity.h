@@ -58,16 +58,11 @@ namespace Dodo
 			template<typename T>
 			std::shared_ptr<T> GetComponent()
 			{
-				//auto ptr(m_arrComponentArray[Components::getComponentTypeID<T>()]);
-				//return static_cast<T*>(ptr);;
-				
 				if (m_components.count(&typeid(T)) != 0)
 				{
 					auto c = std::dynamic_pointer_cast<T>(m_components[&typeid(T)]);
 
 					return c;
-
-					//return static_cast<T*>();
 				}
 				else
 				{

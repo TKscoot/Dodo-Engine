@@ -60,6 +60,6 @@ layout(push_constant) uniform PushConsts {
 void main()
 {
 	fragUVW = inPosition;
-	fragUVW.y *= -1.0;
+	//fragUVW.y *= -1.0;
 	gl_Position = ubo.proj * ubo.model * vec4(inPosition.xyz, 1.0);
 }

@@ -23,9 +23,6 @@ namespace Dodo
 				// Index buffer
 				VkBuffer indexBuffer;
 				VkDeviceMemory indexBufferMemory;
-
-				//VkBuffer uniformBuffer;
-				//VkDeviceMemory uniformBufferMemory;
 			};
 
 			struct DepthData

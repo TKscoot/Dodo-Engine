@@ -1,0 +1,1 @@
+for %%f in (*.pgm) do toktx.exe --2d %%f.ktx %%f
