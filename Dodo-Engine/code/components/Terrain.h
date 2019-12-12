@@ -4,6 +4,7 @@
 #include "common/DodoTypes.h"
 #include "ECS.h"
 #include "Mesh.h"
+#include "common/SimplexNoise.h"
 
 namespace Dodo
 {
@@ -37,6 +38,16 @@ namespace Dodo
 			const uint32_t m_vertexCount;
 
 			void ConstructTerrain();
+			int storeQuad(int pointer, int topLeft, int topRight, int bottomLeft, int bottomRight)
+			{
+				m_indices[pointer++] = topLeft;
+				m_indices[pointer++] = bottomLeft;
+				m_indices[pointer++] = bottomRight;
+				m_indices[pointer++] = topLeft;
+				m_indices[pointer++] = bottomRight;
+				m_indices[pointer++] = topRight;
+				return pointer;
+			}
 
 		};
 	}

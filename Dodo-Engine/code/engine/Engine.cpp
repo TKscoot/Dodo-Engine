@@ -73,7 +73,7 @@ namespace Dodo::Engine
 		//auto boxTrans = boxEntity->AddComponent<Components::CTransform>();
 		//boxTrans->setScale(Math::Vector3f(2.0f));
 		//boxTrans->setRotation(90.0f, 0.0f, 0.0f);
-		////boxTrans->setPositionX(-10.0f);
+		//boxTrans->setPositionX(-10.0f);
 		auto floorTrans = floorEntity->AddComponent<Components::CTransform>();
 		floorTrans->setPositionY(-0.3f);
 		floorTrans->setPositionX(0.5f);
@@ -125,7 +125,7 @@ namespace Dodo::Engine
 	DodoError CEngine::Run()
 	{
 		m_bRunning = true;
-		DodoError result;
+		DodoError result = DodoError::DODO_INITIALIZATION_FAILED;
 		auto lastTime = std::chrono::high_resolution_clock::now();
 		while (m_bRunning && !glfwWindowShouldClose(m_pWindow->GetWindow()))
 		{

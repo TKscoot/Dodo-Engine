@@ -1,109 +1,87 @@
-#include "dodopch.h"
+﻿#include "dodopch.h"
 #include "Terrain.h"
 
 void Dodo::Components::CTerrain::ConstructTerrain()
 {
 	// constructing terrain vertices of patchSize * patchSize
-	m_vertices.resize(m_vertexCount);
-	const float wx = 2.0f;
-	const float wy = 2.0f;
+	//m_vertices.resize(m_vertexCount);
+	//const float wx = 2.0f;
+	//const float wy = 2.0f;
+	CreateMeshFromFile("resources/models/terrain.obj");
 
-	for (auto x = 0; x < m_patchSize; x++)
+
+	int idx = 0;
+	for (auto y = 0; y < m_patchSize; y++)
 	{
-		for (auto y = 0; y < m_patchSize; y++)
+		for (auto x = 0; x < m_patchSize; x++)
 		{
-			uint32_t index = (x + y * m_patchSize);
-			m_vertices[index].position[0] = x * wx + wx / 2.0f - (float)m_patchSize * wx / 2.0f;
-			m_vertices[index].position[1] = 0.0f;
-			m_vertices[index].position[2] = y * wy + wy / 2.0f - (float)m_patchSize * wy / 2.0f;
-			m_vertices[index].texcoords = glm::vec2((float)x / m_patchSize, (float)y / m_patchSize) * m_uvScale;
+			//m_vertices[idx].position.x = x;
+			//m_vertices[idx].position.y = SimplexNoise::noise(x * 0.1f, y * 0.1f) * 10.0f;
+			//m_vertices[idx].position.z = y;
+			idx++;
 		}
 	}
 
-	// TODO: apply heightmap here!
-
-
-	// End TODO
-
-
-
-	// Calculating indices
-	const uint32_t w = (m_patchSize - 1);
-	const uint32_t indexCount = w * w * 4;
-	
-	m_indices.resize(4000000);
-	
-	//for (auto x = 0; x < w; x++)
+	//for (auto x = 0; x < m_patchSize; x++)
 	//{
-	//	for (auto y = 0; y < w; y++)
+	//	for (auto y = 0; y < m_patchSize; y++)
 	//	{
-	//		uint32_t index = (x + y * w) * 4;
-	//		m_indices[index] = (x + y * m_patchSize);
-	//		m_indices[index + 1] = m_indices[index] + m_patchSize;
-	//		m_indices[index + 2] = m_indices[index + 1] + 1;
-	//		m_indices[index + 3] = m_indices[index] + 1;	
+	//		uint32_t index = (x + y * m_patchSize);
+	//		m_vertices[index].position[0] = x * wx + wx / 2.0f - (float)m_patchSize * wx / 2.0f;
+	//		m_vertices[index].position[1] = 1.0f
+	//		m_vertices[index].position[2] = y * wy + wy / 2.0f - (float)m_patchSize * wy / 2.0f;
+	//		m_vertices[index].texcoords = glm::vec2((float)x / m_patchSize, (float)y / m_patchSize) * m_uvScale;
 	//	}
 	//}
 
 
-	for (int i = 0; i < m_vertexCount; i++)
-	{
-		// First trangle of side - CCW from bottom left
-		//m_indices[i  ] = i;			   // vertex 0
-		//m_indices[i + 1] = i + 1;        // vertex 1
-		//m_indices[i + 2] = i + m_patchSize;        // vertex 2
-						  
-		// Second triangle of side - CCW from bottom left
-		//m_indices[i + 3] = i + 1;        // vertex 0
-		//m_indices[i + 4] = i + 2;        // vertex 1
-		//m_indices[i + 5] = i + 3;        // vertex 2
-		//i += 2;
-	}
-	// First trangle of side - CCW from bottom left
-	//m_indices[0  ]	 = 0;			   // vertex 0
-	//m_indices[1] = m_patchSize;        // vertex 1
-	//m_indices[2] =  1;        // vertex 2
-	
-	// Second triangle of side - CCW from bottom left
-	//m_indices[3] = m_patchSize;        // vertex 0
-	//m_indices[4] = 1;        // vertex 1
-	//m_indices[5] = m_patchSize + 1;        // vertex 2
+	//for (auto i = 0; i < m_patchSize; i++)
+	//{
+	//	for (auto j = 0; j < m_patchSize; j++)
+	//	{
+	//		uint32_t index = (i + j * m_patchSize);
+	//
+	//		const auto factorRow = float(i) / float(m_patchSize - 1) * 100.0f;
+	//		const auto factorColumn = float(j) / float(m_patchSize - 1) * 100.0f;
+	//		//const auto& vertexHeight = _heightData[i][j];
+	//
+	//
+	//		m_vertices[index].position = glm::vec3(factorColumn, noise * 10.0f, factorRow);
+	//	}
+	//	//_vbo.addData(_vertices[i].data(), m_patchSize * sizeof(glm::vec3));
+	//}
 
 
-	// KLAPPT ABER IST FALSCH!!!
+	// TODO: apply heightmap here!
 
-	int idx = 0;
-	short pitch = (short)(m_patchSize - 1);
-	short i1 = 0;
-	short i2 = 1;
-	short i3 = (short)(1 + pitch);
-	short i4 = pitch;
+	//for (int i = 0; i < m_patchSize * m_patchSize; i++)
+	//{
+	//	if (i % 50 == 0)
+	//	{
+	//		m_vertices[i].position.y = 3.0f;
+	//	}
+	//}
 
-	short row = 0;
+	// End TODO
 
-	for (int z = 0; z < m_patchSize; z++)
-	{
-		for (int x = 0; x < m_patchSize - 1; x++)
-		{
-			m_indices[idx++] = i1;
-			m_indices[idx++] = i2;
-			m_indices[idx++] = i3;
-
-			m_indices[idx++] = i3;
-			m_indices[idx++] = i4;
-			m_indices[idx++] = i1;
-
-			i1++;
-			i2++;
-			i3++;
-			i4++;
-
-		}
-
-		row += pitch;
-		i1 = row;
-		i2 = (short)(row + 1);
-		i3 = (short)(i2 + pitch);
-		i4 = (short)(row + pitch);
-	}
+	//m_indices.clear();
+	//
+	//for (uint64_t k = 0; k < m_patchSize; ++k)
+	//{
+	//	for (uint64_t j = 0; j < m_patchSize; ++j)
+	//	{
+	//		// CW
+	//		Vector3f triangle0 = Vector3f((j*m_patchSize) + k, (j*m_patchSize) + (k + 1), (j + 1)*m_patchSize + k);
+	//		Vector3f triangle1 = Vector3f((j + 1)*m_patchSize + (k), (j*m_patchSize) + (k + 1), (j + 1)*m_patchSize + (k + 1));
+	//
+	//		// Add these indices to a list.
+	//		m_indices.push_back(triangle0.x);
+	//		m_indices.push_back(triangle0.y);
+	//		m_indices.push_back(triangle0.z);
+	//		m_indices.push_back(triangle1.x);
+	//		m_indices.push_back(triangle1.y);
+	//		m_indices.push_back(triangle1.z);
+	//
+	//	}
+	//}
 }
