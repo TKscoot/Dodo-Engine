@@ -552,7 +552,7 @@ VkResult Dodo::Rendering::CRenderer::CreateGraphicsPipeline()
 	rasterizer.sType				   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.depthClampEnable		   = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode			   = VK_POLYGON_MODE_LINE;
+	rasterizer.polygonMode			   = VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth			   = 1.0f;
 	rasterizer.cullMode				   = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace			   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -1034,21 +1034,21 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorPool()
 
 	std::array<VkDescriptorPoolSize, 5> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_vkSwapChainImages.size());
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_vkSwapChainImages.size());
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_vkSwapChainImages.size());
+	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
 	poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_vkSwapChainImages.size());
+	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
 	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_vkSwapChainImages.size());
+	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
 	
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(m_vkSwapChainImages.size());
+	poolInfo.maxSets = static_cast<uint32_t>(m_pMeshes.size());
 
 	result = vkCreateDescriptorPool(m_pIntegration->device(), &poolInfo, nullptr, &m_vkDescriptorPool);
 	CError::CheckError<VkResult>(result);
@@ -1060,12 +1060,12 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	std::vector<VkDescriptorSetLayout> layouts(m_vkSwapChainImages.size(), m_vkDescriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(m_pMeshes.size(), m_vkDescriptorSetLayout);
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType				 = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool	 = m_vkDescriptorPool;
-	allocInfo.descriptorSetCount = m_vkSwapChainImages.size();
+	allocInfo.descriptorSetCount = m_pMeshes.size();
 	allocInfo.pSetLayouts		 = layouts.data();
 
 	m_vkDescriptorSets.resize(m_pMeshes.size());
