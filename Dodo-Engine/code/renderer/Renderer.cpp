@@ -37,6 +37,10 @@ DodoError Dodo::Rendering::CRenderer::Initialize(std::shared_ptr<VKIntegration> 
 	m_pSkybox = std::make_shared<CSkybox>(m_pIntegration, m_vkRenderPass, m_vkCommandPool, m_vkSwapChainExtent);
 	m_pSkybox->Initialize();
 
+	// ShadowMap
+	m_pShadowMap = std::make_shared<CShadowMapping>(m_pIntegration);
+	m_pShadowMap->Initialize();
+
 	CreateCommandBuffers();
 	CreateSyncObjects();
 
@@ -778,7 +782,7 @@ VkResult Dodo::Rendering::CRenderer::CreateDepthResources()
 
 	VkFormat depthFormat = FindDepthFormat();
 
-		result = CreateImage(
+	result = CreateImage(
 			m_vkSwapChainExtent.width,
 			m_vkSwapChainExtent.height,
 			depthFormat,
@@ -974,25 +978,15 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 
 			Vector3f pos = m_pMeshes[j]->entity->GetComponent<Components::CTransform>()->getPosition();
 			vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Math::Vector3f), &pos);
-			float f = 0.5f;
-			//m_pMeshes[0]->entity->GetComponent<Components::CMaterial>()->setPushConstants(1.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-			//m_pMeshes[1]->entity->GetComponent<Components::CMaterial>()->setPushConstants(0.0f, 0.8f, 1.0f, 1.0f, 1.0f);
-
 			CMaterial::PushConsts pushConsts = m_pMeshes[j]->entity->GetComponent<Components::CMaterial>()->pushConstants();
-			//pushConsts.roughness = m_pGui->uiSettings.roughness;
-			//pushConsts.metallic = m_pGui->uiSettings.roughness;
 			vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(Vector3f), sizeof(CMaterial::PushConsts), &pushConsts);
 
 			vkCmdDrawIndexed(m_vkCommandBuffers[i], m_pMeshes[j]->m_indices.size(), 1, 0, 0, 0);
 		}
 
-
-
 		vkCmdEndRenderPass(m_vkCommandBuffers[i]);
 		result = vkEndCommandBuffer(m_vkCommandBuffers[i]);
 		CError::CheckError<VkResult>(result);
-
-
 	}
 
 
@@ -1034,21 +1028,21 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorPool()
 
 	std::array<VkDescriptorPoolSize, 5> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
+	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
+	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_pMeshes.size());
+	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(m_pMeshes.size());
+	poolInfo.maxSets = static_cast<uint32_t>(m_pMaterials.size());
 
 	result = vkCreateDescriptorPool(m_pIntegration->device(), &poolInfo, nullptr, &m_vkDescriptorPool);
 	CError::CheckError<VkResult>(result);
@@ -1060,15 +1054,15 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	std::vector<VkDescriptorSetLayout> layouts(m_pMeshes.size(), m_vkDescriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(m_pMaterials.size(), m_vkDescriptorSetLayout);
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType				 = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool	 = m_vkDescriptorPool;
-	allocInfo.descriptorSetCount = m_pMeshes.size();
+	allocInfo.descriptorSetCount = m_pMaterials.size();
 	allocInfo.pSetLayouts		 = layouts.data();
 
-	m_vkDescriptorSets.resize(m_pMeshes.size());
+	m_vkDescriptorSets.resize(m_pMaterials.size());
 	result = vkAllocateDescriptorSets(m_pIntegration->device(), &allocInfo, m_vkDescriptorSets.data());
 	CError::CheckError<VkResult>(result);
 
@@ -1177,7 +1171,7 @@ VkResult Dodo::Rendering::CRenderer::UpdateCommandBuffers()
 				//m_pMeshes[0]->entity->GetComponent<Components::CMaterial>()->setPushConstants(1.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				//m_pMeshes[1]->entity->GetComponent<Components::CMaterial>()->setPushConstants(0.0f, 0.8f, 1.0f, 1.0f, 1.0f);
 
-				CMaterial::PushConsts pushConsts = m_pMeshes[j]->entity->GetComponent<Components::CMaterial>()->pushConstants();
+				CMaterial::PushConsts pushConsts = m_pMaterials[j]->entity->GetComponent<Components::CMaterial>()->pushConstants();
 				pushConsts.roughness = m_pGui->uiSettings.roughness;
 				pushConsts.metallic = m_pGui->uiSettings.metallic;
 				vkCmdPushConstants(m_vkCommandBuffers[i], m_vkPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(Vector3f), sizeof(CMaterial::PushConsts), &pushConsts);

@@ -9,6 +9,7 @@
 #include "entity/Camera.h"
 #include "GUI.h"
 #include "Skybox.h"
+#include "ShadowMapping.h"
 #include "components/Terrain.h"
 
 namespace Dodo
@@ -228,6 +229,8 @@ namespace Dodo
 			float m_fFrameTimeCounter = 0.0f;
 
 			std::shared_ptr<CSkybox> m_pSkybox;
+
+			std::shared_ptr<CShadowMapping> m_pShadowMap;
 
 			uint32_t	   m_iCurrentFrame      = 0;
 			const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

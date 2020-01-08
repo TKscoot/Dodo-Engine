@@ -27,42 +27,59 @@ void Dodo::Entity::CCamera::Update()
 	UpdateViewMatrix();
 }
 
-void Dodo::Entity::CCamera::UpdateViewMatrix()
+void Dodo::Entity::CCamera::HandleKeyInput(float cameraSpeed)
 {
-	float cameraSpeed = *camSpeed;
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_A))
 	{
 		//m_transform->setPositionX(m_transform->getPosition().x + 0.01);
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	}
-	
+
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_D))
 	{
 		//m_transform->setPositionX(m_transform->getPosition().x - 0.01);
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	}
-	
+
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_E))
 	{
 		//m_transform->setPositionY(m_transform->getPosition().y + 0.01);
 		cameraPos.y += cameraSpeed * 1.0f;
 	}
-	
+
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_Q))
 	{
 		cameraPos.y -= cameraSpeed * 1.0f;
 
 	}
-	
+
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_W))
 	{
+		cameraSpeed * 2;
 		cameraPos += cameraSpeed * cameraFront;
 	}
-	
+
 	if (Environment::CInput::IsKeyPressed(Environment::KeyCode::KEY_S))
 	{
 		cameraPos -= cameraSpeed * cameraFront;
 	}
+}
+
+void Dodo::Entity::CCamera::UpdateViewMatrix()
+{
+	float cameraSpeed = *camSpeed;
+
+	if (Environment::CInput::IsModPressed(Environment::ModKeyCode::KEY_MOD_SHIFT))
+	{
+		cameraSpeed *= 3;
+	}
+	else
+	{
+		cameraSpeed = *camSpeed;
+	}
+
+	HandleKeyInput(cameraSpeed);
+
 
 	HandleMouseMove();
 

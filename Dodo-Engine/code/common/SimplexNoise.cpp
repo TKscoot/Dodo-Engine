@@ -102,13 +102,6 @@ static inline uint8_t hash(int32_t i)
 	return perm[static_cast<uint8_t>(i)];
 }
 
-/* NOTE Gradient table to test if lookup-table are more efficient than calculs
-static const float gradients1D[16] = {
-		-8.f, -7.f, -6.f, -5.f, -4.f, -3.f, -2.f, -1.f,
-		 1.f,  2.f,  3.f,  4.f,  5.f,  6.f,  7.f,  8.f
-};
-*/
-
 /**
  * Helper function to compute gradients-dot-residual vectors (1D)
  *
@@ -129,7 +122,6 @@ static float grad(int32_t hash, float x)
 	const int32_t h = hash & 0x0F;  // Convert low 4 bits of hash code
 	float grad = 1.0f + (h & 7);    // Gradient value 1.0, 2.0, ..., 8.0
 	if ((h & 8) != 0) grad = -grad; // Set a random sign for the gradient
-//  float grad = gradients1D[h];    // NOTE : Test of Gradient look-up table instead of the above
 	return (grad * x);              // Multiply the gradient with the distance
 }
 

@@ -2,7 +2,9 @@
 #include "Input.h"
 
 bool Dodo::Environment::CInput::isKeyPressed = false;
+bool Dodo::Environment::CInput::isModPressed = false;
 Dodo::Environment::KeyCode Dodo::Environment::CInput::lastPressedKey = Dodo::Environment::KeyCode::KEY_UNKNOWN;
+Dodo::Environment::ModKeyCode Dodo::Environment::CInput::lastModPressed = Dodo::Environment::ModKeyCode::KEY_MOD_UNKNOWN;
 bool Dodo::Environment::CInput::isMouseButtonPressed = false;
 Dodo::Environment::MouseKeyCode Dodo::Environment::CInput::lastPressedMouseButton = (MouseKeyCode)Dodo::Environment::KeyCode::KEY_UNKNOWN;
 std::shared_ptr<Dodo::Environment::CWindow> Dodo::Environment::CInput::m_pWindow = {};
@@ -14,6 +16,24 @@ bool Dodo::Environment::CInput::IsKeyPressed(KeyCode key)
 	if (isKeyPressed)
 	{
 		if (lastPressedKey == key)
+		{
+			return true;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
+	// should never get here
+	return false;
+}
+
+bool Dodo::Environment::CInput::IsModPressed(ModKeyCode key)
+{
+	if (isModPressed)
+	{
+		if (lastModPressed == key)
 		{
 			return true;
 		}
@@ -58,10 +78,16 @@ void Dodo::Environment::CInput::key_callback(GLFWwindow * window, int key, int s
 	{
 		lastPressedKey = (KeyCode)key;
 		isKeyPressed = true;
+		if (mods != 0x0000)
+		{
+			isModPressed = true;
+			lastModPressed = (ModKeyCode)mods;
+		}
 	}
 	else if (action == GLFW_RELEASE)
 	{
 		isKeyPressed = false;
+		isModPressed = false;
 	}
 
 	if (key == GLFW_KEY_M && action == GLFW_PRESS)

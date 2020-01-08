@@ -36,6 +36,7 @@ namespace Dodo
 			const uint32_t m_patchSize;
 			const float m_uvScale;
 			const uint32_t m_vertexCount;
+			uint16_t *m_heightData;
 
 			void ConstructTerrain();
 			int storeQuad(int pointer, int topLeft, int topRight, int bottomLeft, int bottomRight)

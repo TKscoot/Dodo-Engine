@@ -19,6 +19,7 @@ namespace Dodo
 			~CCamera();
 
 			void Update();
+			void HandleKeyInput(float cameraSpeed);
 
 			void setPerspective(float fov, float aspect, float znear, float zfar)
 			{

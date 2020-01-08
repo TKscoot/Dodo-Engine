@@ -140,6 +140,14 @@ namespace Dodo
 			KEY_RIGHT_SUPER        = 347,
 			KEY_MENU               = 348
 		};
+		enum ModKeyCode
+		{
+			KEY_MOD_UNKNOWN = 0,
+			KEY_MOD_SHIFT   = 0x0001,
+			KEY_MOD_CONTROL = 0x0002,
+			KEY_MOD_ALT     = 0x0004,
+			KEY_MOD_SUPER   = 0x0008
+		};
 
 		class CInput
 		{
@@ -153,6 +161,7 @@ namespace Dodo
 			}
 			
 			static bool IsKeyPressed(KeyCode key);
+			static bool IsModPressed(ModKeyCode key);
 			static Math::Vector2f GetMousePosition();
 			static bool IsMouseKeyPressed(MouseKeyCode key);
 
@@ -164,7 +173,9 @@ namespace Dodo
 			static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 			static void mouse_pos_callback(GLFWwindow* window, double xpos, double ypos);
 			static bool isKeyPressed;
+			static bool isModPressed;
 			static KeyCode lastPressedKey;
+			static ModKeyCode lastModPressed;
 			static bool isMouseButtonPressed;
 			static MouseKeyCode lastPressedMouseButton;
 

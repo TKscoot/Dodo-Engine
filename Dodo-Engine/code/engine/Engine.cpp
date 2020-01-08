@@ -94,7 +94,7 @@ namespace Dodo::Engine
 		// Terrain testing
 		
 		Entity::CEntity* terrainEntity = new Entity::CEntity("Terrain");
-		std::shared_ptr<Components::CTerrain> terrain = terrainEntity->AddComponent<Components::CTerrain>(64, 64.0f);
+		std::shared_ptr<Components::CTerrain> terrain = terrainEntity->AddComponent<Components::CTerrain>(128, 64.0f);
 		std::shared_ptr<Components::CMaterial> terrainMat = terrainEntity->AddComponent<Components::CMaterial>(m_pVulkanIntegration, shaderInfo);
 		terrainMat->SetTextures(
 			//"resources/textures/RustedIron/rustediron2_basecolor.png",
@@ -103,8 +103,8 @@ namespace Dodo::Engine
 			"resources/textures/RustedIron/rustediron2_metallic.png",
 			"resources/textures/grey.png");
 		auto terrainTrans = terrainEntity->AddComponent<Components::CTransform>();
-		terrainTrans->setPosition(-32.0f, -5.0f, -32.0f);
-		terrainTrans->setScale(8.0f, 1.0f, 8.0f);
+		//terrainTrans->setPosition(-32.0f, -5.0f, -32.0f);
+		//terrainTrans->setScale(8.0f, 1.0f, 8.0f);
 
 		// Terrain testing END
 

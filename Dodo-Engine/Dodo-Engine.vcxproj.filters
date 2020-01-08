@@ -87,6 +87,9 @@
     <ClCompile Include="code\common\SimplexNoise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\renderer\ShadowMapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\environment\Window.h">
@@ -314,6 +317,9 @@
     <ClInclude Include="code\common\SimplexNoise.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="code\renderer\ShadowMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\default.frag" />
@@ -323,6 +329,7 @@
     <None Include="shaders\pbr.frag" />
     <None Include="shaders\skybox.frag" />
     <None Include="shaders\skybox.vert" />
+    <None Include="shaders\shadow.vert" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ext\assimp\lib\assimp-vc140-mt.lib" />
