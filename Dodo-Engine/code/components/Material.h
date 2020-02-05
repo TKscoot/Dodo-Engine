@@ -76,11 +76,11 @@ namespace Dodo
 
 			struct UniformBufferObject
 			{
-				Math::Matrix4x4 model;
-				Math::Matrix4x4 View;
-				Math::Matrix4x4 projection;
-				
-				Math::Vector3f camPos;
+				__declspec(align(16)) Math::Matrix4x4 model;
+				__declspec(align(16)) Math::Matrix4x4 View;
+				__declspec(align(16)) Math::Matrix4x4 projection;
+
+				__declspec(align(16)) Math::Vector3f camPos;
 			};
 
 			struct PushConsts

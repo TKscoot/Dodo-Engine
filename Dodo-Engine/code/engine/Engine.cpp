@@ -109,6 +109,35 @@ namespace Dodo::Engine
 		// Terrain testing END
 
 
+		// Light Testing
+
+		Components::CLight::LightProperties props = {};
+		props.position = Math::Vector4f(5.0f, 1.0f, 1.0f, 1.0f);
+		props.direction = Math::Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+		props.color = Math::Vector4f(300.0f, 300.0f, 300.0f, 1.0f);
+		props.type = Components::CLight::LightType::LIGHT_DIRECTIONAL;
+		props.ambientIntensity = 1.0f;
+		props.diffuseIntensity = 1.0f;
+		props.specularIntensity = 1.0f;
+
+		Entity::CEntity* light = new Entity::CEntity("Light");
+		light->AddComponent<Components::CLight>(props);
+
+		Components::CLight::LightProperties props2 = {};
+		props2.position = Math::Vector4f(10.0f, 10.0f, 1.0f, 1.0f);
+		props2.direction = Math::Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+		props2.color = Math::Vector4f(255.0f, 255.0f, 255.0f, 1.0f);
+		props2.type = Components::CLight::LightType::LIGHT_POINT;
+		props2.ambientIntensity = 26.43f;
+		props2.diffuseIntensity = 30.0f;
+		props2.specularIntensity = 10.0f;
+
+		Entity::CEntity* light2 = new Entity::CEntity("Light2");
+		light2->AddComponent<Components::CLight>(props2);
+
+		// Light Testing END
+
+
 
 		std::vector<std::shared_ptr<Dodo::Entity::CEntity>> entities = {};
 		for (auto &ent : Entity::CEntityHandler::GetEntities())
@@ -159,12 +188,13 @@ namespace Dodo::Engine
 	DodoError CEngine::Update()
 	{
 		m_pCamera->Update();
-		for (auto ent : Entity::CEntityHandler::GetEntities())
-		{
-			ent->UpdateComponents();
-			ent->Update();
-			
-		}
+		Entity::CEntityHandler::Update();
+		//for (auto ent : Entity::CEntityHandler::GetEntities())
+		//{
+		//	//ent->UpdateComponents();
+		//	ent->Update();
+		//	
+		//}
 
 		if (CInput::IsKeyPressed(KeyCode::KEY_G))
 		{

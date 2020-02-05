@@ -21,6 +21,21 @@ layout(binding = 2) uniform sampler2D normalSampler;
 layout(binding = 3) uniform sampler2D metallicSampler;
 layout(binding = 4) uniform sampler2D roughnessSampler;
 
+#define MAX_LIGHTS 20
+struct Light{
+	vec4  position;
+	vec4  direction;
+	vec4  color;
+	int   type;
+	float ambientIntensity;
+	float diffuseIntensity;
+	float specularIntensity;
+};
+
+layout(binding = 5) uniform LightUBO{
+	Light lights[MAX_LIGHTS];
+} lightUbo;
+
 layout(push_constant) uniform PushConsts {
 	layout(offset = 12) float roughness;
 	layout(offset = 16) float metallic;
@@ -31,59 +46,29 @@ layout(push_constant) uniform PushConsts {
 
 const float PI = 3.14159265359;
 
-#define MAX_LIGHTS 10
-struct Light {
-   vec4  position;
-   vec3  intensities; //a.k.a the color of the light
-   float attenuation;
-   float ambientCoefficient;
-   float coneAngle;
-   vec3  coneDirection;
-};
-
-vec3 ApplyLight(Light light, vec3 surfaceColor, vec3 normal, vec3 surfacePos, vec3 surfaceToCamera) {
-    vec3 surfaceToLight;
-    float attenuation = 1.0;
-    if(light.position.w == 0.0) {
-        //directional light
-        surfaceToLight = normalize(light.position.xyz);
-        attenuation = 1.0; //no attenuation for directional lights
-    } else {
-        //point light
-        surfaceToLight = normalize(light.position.xyz - surfacePos);
-        float distanceToLight = length(light.position.xyz - surfacePos);
-        attenuation = 1.0 / (1.0 + light.attenuation * pow(distanceToLight, 2));
-
-        //cone restrictions (affects attenuation)
-        float lightToSurfaceAngle = degrees(acos(dot(-surfaceToLight, normalize(light.coneDirection))));
-        if(lightToSurfaceAngle > light.coneAngle){
-            attenuation = 0.0;
-        }
-    }
-
-    //ambient
-    vec3 ambient = light.ambientCoefficient * surfaceColor.rgb * light.intensities;
-
-    //diffuse
-    float diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));
-    vec3 diffuse = diffuseCoefficient * surfaceColor.rgb * light.intensities;
-    
-    //specular
-    float specularCoefficient = 0.0;
-    if(diffuseCoefficient > 0.0)
-        specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), material.metallic);
-    vec3 specular = specularCoefficient * vec3(material.r, material.g, material.b) * light.intensities;
-
-    //linear color (color before gamma correction)
-    return ambient + attenuation*(diffuse + specular);
-}
-
 vec3 materialcolor()
 {
 	vec4 diffuseColor = texture(albedoSampler, inTexCoord);
-	return /*vec3(material.r, material.g, material.b) + */  diffuseColor.rgb;
+	return diffuseColor.rgb;
 }
 
+vec3 Uncharted2ToneMapping(vec3 color)
+{
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+	float W = 11.2;
+	float exposure = 2.;
+	color *= exposure;
+	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
+	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
+	color /= white;
+	color = pow(color, vec3(1. / 2.2));
+	return color;
+}
 
 vec3 getNormalFromMap()
 {
@@ -94,7 +79,7 @@ vec3 getNormalFromMap()
     vec2 st1 = dFdx(inTexCoord);
     vec2 st2 = dFdy(inTexCoord);
 
-    vec3 N   = normalize(inNormal);
+    vec3 N   = inNormal;//normalize(inNormal);
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
@@ -162,11 +147,10 @@ void main()
 	//const vec3 lightPos = vec3(15.0,-7.5,15.0);
 
 	vec3 lightPos[4];
-	lightPos[0] = vec3(-10.0f,  10.0f, 10.0f);
-	lightPos[1] = vec3( 10.0f,  10.0f, 10.0f);
+	lightPos[0] = lightUbo.lights[0].position.xyz;
+	lightPos[1] = lightUbo.lights[1].position.xyz;
 	lightPos[2] = vec3(-10.0f, -10.0f, 10.0f);
 	lightPos[3] = vec3( 10.0f, -10.0f, 10.0f);
-
 
 	vec3 lightColor[4];
 	lightColor[0] = vec3(300.0f, 300.0f, 300.0f);
@@ -184,17 +168,13 @@ void main()
         vec3 radiance     = lightColor[i] * attenuation;
 
         // cook-torrance brdf
-        float D = DistributionGGX(N, H, roughness);
+        float D   = DistributionGGX(N, H, roughness);
         float G   = GeometrySmith(N, V, L, roughness);
         vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
         vec3 kS = F;
         vec3 kD = vec3(1.0) - kS;
         kD *= 1.0 - metallic;
-
-        //vec3 numerator    = D * G * F;
-        //float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-        //vec3 specular     = numerator / max(denominator, 0.001);
 
 		float NdotV = max(dot(N, V), 0.00000001);
 		float NdotL = max(dot(N, L), 0.00000001);
@@ -209,9 +189,11 @@ void main()
     vec3 ambient = vec3(0.03) * albedo.rgb  * 1.0;
     vec3 color = ambient + Lo;
 
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));
 
-    //outColor = vec4(color, 1.0);
+
+    //color = color / (color + vec3(1.0));
+    //color = pow(color, vec3(1.0/2.2));
+	color = Uncharted2ToneMapping(color);
+
 	outColor = vec4(color, 1.0);
 }

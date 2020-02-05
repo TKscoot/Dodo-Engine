@@ -38,7 +38,7 @@ DodoError Dodo::Rendering::CRenderer::Initialize(std::shared_ptr<VKIntegration> 
 	m_pSkybox->Initialize();
 
 	// ShadowMap
-	m_pShadowMap = std::make_shared<CShadowMapping>(m_pIntegration);
+	m_pShadowMap = std::make_shared<CShadowMapping>(m_pIntegration, m_pCamera);
 	m_pShadowMap->Initialize();
 
 	CreateCommandBuffers();
@@ -89,6 +89,7 @@ DodoError Dodo::Rendering::CRenderer::DrawFrame(double deltaTime)
 	// Update uniform buffers here!!
 	UpdateUniformBuffer();
 	m_pSkybox->UpdateUniformBuffer(m_pCamera);
+	m_pShadowMap->UpdateUniformBuffer();
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -475,12 +476,21 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSetLayout()
 	roughnessSamplerLayoutBinding.pImmutableSamplers = nullptr;
 	roughnessSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::array<VkDescriptorSetLayoutBinding, 5> bindings = { 
+	VkDescriptorSetLayoutBinding lightUboLayoutBinding = {};
+	lightUboLayoutBinding.binding = 5;
+	lightUboLayoutBinding.descriptorCount = 1;
+	lightUboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	lightUboLayoutBinding.pImmutableSamplers = nullptr;	// image sampling related
+	lightUboLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 6> bindings = { 
 		uboLayoutBinding, 
 		albedoSamplerLayoutBinding, 
 		normalSamplerLayoutBinding, 
 		metallicSamplerLayoutBinding, 
-		roughnessSamplerLayoutBinding };
+		roughnessSamplerLayoutBinding,
+		lightUboLayoutBinding 
+	};
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -901,6 +911,16 @@ VkResult Dodo::Rendering::CRenderer::CreateUniformBuffers()
 		CError::CheckError<VkResult>(result);
 	}
 
+	VkDeviceSize lightBufferSize = sizeof(CLight::LightProperties) * m_pLights.size();
+
+	result = CreateBuffer(
+		lightBufferSize,
+		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		m_vkLightUniformBuffer,
+		m_vkLightUniformBufferMemory);
+	CError::CheckError<VkResult>(result);
 
 	return result;
 }
@@ -985,6 +1005,9 @@ VkResult Dodo::Rendering::CRenderer::CreateCommandBuffers()
 		}
 
 		vkCmdEndRenderPass(m_vkCommandBuffers[i]);
+
+		m_pShadowMap->RecordCommandBuffer(m_vkCommandBuffers[i]);
+
 		result = vkEndCommandBuffer(m_vkCommandBuffers[i]);
 		CError::CheckError<VkResult>(result);
 	}
@@ -1026,7 +1049,7 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorPool()
 {
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
-	std::array<VkDescriptorPoolSize, 5> poolSizes = {};
+	std::array<VkDescriptorPoolSize, 6> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1037,6 +1060,8 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorPool()
 	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
+	poolSizes[5].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[5].descriptorCount = static_cast<uint32_t>(m_pMaterials.size());
 	
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1055,13 +1080,13 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
 
 	std::vector<VkDescriptorSetLayout> layouts(m_pMaterials.size(), m_vkDescriptorSetLayout);
-
+	
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType				 = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool	 = m_vkDescriptorPool;
 	allocInfo.descriptorSetCount = m_pMaterials.size();
 	allocInfo.pSetLayouts		 = layouts.data();
-
+	
 	m_vkDescriptorSets.resize(m_pMaterials.size());
 	result = vkAllocateDescriptorSets(m_pIntegration->device(), &allocInfo, m_vkDescriptorSets.data());
 	CError::CheckError<VkResult>(result);
@@ -1091,12 +1116,19 @@ VkResult Dodo::Rendering::CRenderer::CreateDescriptorSets()
 		m_pMaterials[i]->textures().metallic.textureData.imageInfo.sampler  = m_pMaterials[i]->textures().metallic.textureData.textureSampler;
 		m_pMaterials[i]->textures().roughness.textureData.imageInfo.sampler = m_pMaterials[i]->textures().roughness.textureData.textureSampler;
 
+
+		VkDescriptorBufferInfo lightBufferInfo = {};
+		lightBufferInfo.buffer = m_vkLightUniformBuffer;
+		lightBufferInfo.offset = 0;
+		lightBufferInfo.range  = sizeof(CLight::LightProperties) * m_pLights.size();
+
 		std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
 			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &bufferInfo),
 			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &m_pMaterials[i]->textures().albedo.textureData.imageInfo),
 			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2, &m_pMaterials[i]->textures().normal.textureData.imageInfo),
 			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 3, &m_pMaterials[i]->textures().metallic.textureData.imageInfo),
-			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4, &m_pMaterials[i]->textures().roughness.textureData.imageInfo)
+			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4, &m_pMaterials[i]->textures().roughness.textureData.imageInfo),
+			vks::initializers::writeDescriptorSet(m_vkDescriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 5, &lightBufferInfo)
 
 		};
 
@@ -1448,6 +1480,7 @@ VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer()
 		if (m_pTransforms[i] != nullptr)
 		{
 			ubo.model	   = m_pTransforms[i]->getComposed();
+
 		}
 		else
 		{
@@ -1463,6 +1496,19 @@ VkResult Dodo::Rendering::CRenderer::UpdateUniformBuffer()
 			memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(m_pIntegration->device(), m_vkUniformBuffersMemory[i]);
 	}
+
+	std::vector<Components::CLight::LightProperties> props = {};
+	for (auto& l : m_pLights)
+	{
+		props.push_back(l->GetProperties());
+	}
+	props[0].position = Vector4f(0.0f, 0.0f, time, 1.0f);
+
+	void* data;
+	result = vkMapMemory(m_pIntegration->device(), m_vkLightUniformBufferMemory, 0, sizeof(Components::CLight::LightProperties) * props.size(), 0, &data);
+		memcpy(data, props.data(), sizeof(Components::CLight::LightProperties) * props.size());
+	vkUnmapMemory(m_pIntegration->device(), m_vkLightUniformBufferMemory);
+
 
 	return VK_SUCCESS;
 }

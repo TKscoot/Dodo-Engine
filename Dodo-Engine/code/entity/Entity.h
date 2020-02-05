@@ -18,14 +18,6 @@ namespace Dodo
 
 			void Update() {}
 
-			void UpdateComponents()
-			{
-				for (auto& c : m_components)
-				{
-					c.second->Update();
-				}
-			}
-
 			void Destroy() { m_bActive = false; }
 
 
@@ -68,6 +60,11 @@ namespace Dodo
 				{
 					return nullptr;
 				}
+			}
+
+			std::unordered_map<const std::type_info*, std::shared_ptr<Components::CComponent>> GetAllComponents()
+			{
+				return m_components;
 			}
 
 			bool isActive() const { return m_bActive; }

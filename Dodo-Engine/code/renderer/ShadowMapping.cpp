@@ -198,12 +198,21 @@ VkResult Dodo::Rendering::CShadowMapping::CreatePipeline()
 	shaderStageCreateInfo.pSpecializationInfo = nullptr;
 
 
+	auto bindingDescriptions = Components::CMaterial::GetBindingDescription();
+	auto attributeDescriptions = Components::CMaterial::GetAttributeDescriptions();
+
 	VkPipelineVertexInputStateCreateInfo vertInputStateCreateInfo = {};
 	vertInputStateCreateInfo.sType							 = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertInputStateCreateInfo.vertexBindingDescriptionCount	 = shadowVertexInputBindingDescriptions.size();
-	vertInputStateCreateInfo.pVertexBindingDescriptions		 = shadowVertexInputBindingDescriptions.data();
-	vertInputStateCreateInfo.vertexAttributeDescriptionCount = shadowVertexAttributeDescriptions.size();
-	vertInputStateCreateInfo.pVertexAttributeDescriptions    = shadowVertexAttributeDescriptions.data();
+	//vertInputStateCreateInfo.vertexBindingDescriptionCount	 = shadowVertexInputBindingDescriptions.size();
+	//vertInputStateCreateInfo.pVertexBindingDescriptions		 = shadowVertexInputBindingDescriptions.data();
+	//vertInputStateCreateInfo.vertexAttributeDescriptionCount = shadowVertexAttributeDescriptions.size();
+	//vertInputStateCreateInfo.pVertexAttributeDescriptions    = shadowVertexAttributeDescriptions.data();
+
+	vertInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+	vertInputStateCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	vertInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescriptions;
+	vertInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
 
 
 	// Pipeline layout
@@ -231,24 +240,89 @@ VkResult Dodo::Rendering::CShadowMapping::CreatePipeline()
 			nullptr                                     // const VkSampler     *pImmutableSamplers
 		}
 	};
-	VkDescriptorSetLayout dsl = VK_NULL_HANDLE;
 	VkDescriptorSetLayoutCreateInfo ci = {};
 	ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	ci.bindingCount = descriptorSetLayoutBindings.size();
 	ci.pBindings = descriptorSetLayoutBindings.data();
 
-	result = vkCreateDescriptorSetLayout(m_pIntegration->device(), &ci, nullptr, &dsl);
+	result = vkCreateDescriptorSetLayout(m_pIntegration->device(), &ci, nullptr, &m_vkDescriptorSetLayout);
 
-	VkPipelineLayout layout = VK_NULL_HANDLE;
+
+	std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {
+		{
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,          // VkDescriptorType     type
+			1                                           // uint32_t             descriptorCount
+		},
+		{
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  // VkDescriptorType     type
+			1                                           // uint32_t             descriptorCount
+		}
+	};
+	VkDescriptorPoolCreateInfo dpci = {};
+	dpci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	dpci.poolSizeCount = descriptorPoolSizes.size();
+	dpci.pPoolSizes = descriptorPoolSizes.data();
+	dpci.maxSets = 1;
+	dpci.flags = 0;
+
+	result = vkCreateDescriptorPool(m_pIntegration->device(), &dpci, nullptr, &m_vkDescriptorPool);
+
+	VkDescriptorSetAllocateInfo dsAllocInfo = {};
+	dsAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	dsAllocInfo.descriptorPool = m_vkDescriptorPool;
+	dsAllocInfo.descriptorSetCount = 1;
+	dsAllocInfo.pSetLayouts = &m_vkDescriptorSetLayout;
+
+	result = vkAllocateDescriptorSets(m_pIntegration->device(), &dsAllocInfo, &m_vkDescriptorSet);
+
+	result = VKHelper::CreateBuffer(m_pIntegration, sizeof(Math::Matrix4x4),
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		//VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		m_vkUniformBuffer,
+		m_vkUniformBufferMemory);
+
+	VKHelper::BufferDescriptorInfo buffer_descriptor_update = {
+	  m_vkDescriptorSet,                                // VkDescriptorSet                      TargetDescriptorSet
+	  0,                                                // uint32_t                             TargetDescriptorBinding
+	  0,                                                // uint32_t                             TargetArrayElement
+	  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,                // VkDescriptorType                     TargetDescriptorType
+	  {                                                 // std::vector<VkDescriptorBufferInfo>  BufferInfos
+		{
+		  m_vkUniformBuffer,                            // VkBuffer                             buffer
+		  0,                                            // VkDeviceSize                         offset
+		  VK_WHOLE_SIZE                                 // VkDeviceSize                         range
+		}
+	  }
+	};
+
+	VKHelper::ImageDescriptorInfo image_descriptor_update = {
+	  m_vkDescriptorSet,                                  // VkDescriptorSet                      TargetDescriptorSet
+	  1,                                                  // uint32_t                             TargetDescriptorBinding
+	  0,                                                  // uint32_t                             TargetArrayElement
+	  VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,          // VkDescriptorType                     TargetDescriptorType
+	  {                                                   // std::vector<VkDescriptorImageInfo>   ImageInfos
+		{
+		  m_vkSampler,									  // VkSampler                            sampler
+		  m_vkImageView,                                  // VkImageView                          imageView
+		  VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL // VkImageLayout                        imageLayout
+		}
+	  }
+	};
+
+	VKHelper::UpdateDescriptorSets(m_pIntegration->device(), { image_descriptor_update }, { buffer_descriptor_update }, {}, {});
+
 	VkPipelineLayoutCreateInfo plci = {};
 	plci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	plci.pushConstantRangeCount = push_constant_ranges.size();
 	plci.pPushConstantRanges = push_constant_ranges.data();
 	plci.setLayoutCount = 1;
-	plci.pSetLayouts = &dsl;
+	plci.pSetLayouts = &m_vkDescriptorSetLayout;
 	
-	result = vkCreatePipelineLayout(m_pIntegration->device(), &plci, nullptr, &layout);
+	result = vkCreatePipelineLayout(m_pIntegration->device(), &plci, nullptr, &m_vkPipelineLaout);
 	CError::CheckError<VkResult>(result);
+
 
 	//Create Pipeline
 	
@@ -343,17 +417,30 @@ VkResult Dodo::Rendering::CShadowMapping::CreatePipeline()
 	  viewport_infos.Scissors.data()                            // const VkRect2D                     * pScissors
 	};
 
+	//VkPipelineDepthStencilStateCreateInfo ds = {};
+	//ds.sType				 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	//ds.depthTestEnable		 = VK_TRUE;
+	//ds.depthWriteEnable		 = VK_TRUE;
+	//ds.depthCompareOp		 = VK_COMPARE_OP_LESS_OR_EQUAL;
+	//ds.depthBoundsTestEnable = false;
+	//ds.minDepthBounds		 = 0.0f;
+	//ds.maxDepthBounds		 = 1.0f;
+	//ds.stencilTestEnable	 = false;
+	//ds.front				 = {};
+	//ds.back					 = {};
+
 	VkPipelineDepthStencilStateCreateInfo ds = {};
-	ds.sType				 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	ds.depthTestEnable		 = true;
-	ds.depthWriteEnable		 = true;
-	ds.depthCompareOp		 = VK_COMPARE_OP_LESS_OR_EQUAL;
-	ds.depthBoundsTestEnable = false;
-	ds.minDepthBounds		 = 0.0f;
-	ds.maxDepthBounds		 = 1.0f;
-	ds.stencilTestEnable	 = false;
-	ds.front				 = {};
-	ds.back					 = {};
+	ds.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	ds.depthTestEnable = VK_TRUE;
+	ds.depthWriteEnable = VK_TRUE;
+	ds.depthCompareOp = VK_COMPARE_OP_LESS;
+	ds.depthBoundsTestEnable = VK_FALSE;
+	ds.stencilTestEnable = VK_FALSE;
+	ds.minDepthBounds = 0.0f; // Optional
+	ds.maxDepthBounds = 1.0f; // Optional
+	ds.stencilTestEnable = VK_FALSE;
+	ds.front = {}; // Optional
+	ds.back = {}; // Optional
 
 	std::vector<VkDynamicState> dynamic_states = {
 		VK_DYNAMIC_STATE_VIEWPORT,
@@ -376,11 +463,95 @@ VkResult Dodo::Rendering::CShadowMapping::CreatePipeline()
 	pipelineCreateInfo.stageCount		   = 1;
 	pipelineCreateInfo.pStages			   = &shaderStageCreateInfo;
 	pipelineCreateInfo.renderPass		   = m_vkRenderPass;
-	pipelineCreateInfo.layout			   = layout;
+	pipelineCreateInfo.layout			   = m_vkPipelineLaout;
 	pipelineCreateInfo.pVertexInputState   = &vertInputStateCreateInfo;
 
 	result = vkCreateGraphicsPipelines(m_pIntegration->device(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_vkPipeline);
 	CError::CheckError<VkResult>(result);
+
+	return result;
+}
+
+VkResult Dodo::Rendering::CShadowMapping::UpdateUniformBuffer()
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+	
+	ShadowUbo ubo = {};
+	
+	static auto startTime = std::chrono::high_resolution_clock::now();
+
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	Math::Vector3f lightPos(1.0f);
+	lightPos.x = cos(glm::radians(time * 360.0f)) * 40.0f;
+	lightPos.y = -50.0f + sin(glm::radians(time * 360.0f)) * 20.0f;
+	lightPos.z = 25.0f + sin(glm::radians(time * 360.0f)) * 5.0f;
+
+
+	ubo.light_view_matrix = glm::mat4();
+	ubo.scene_view_matrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	ubo.perspective_matrix = glm::perspective(glm::radians(45.0f), 1.0f, 1.0f, 96.0f);
+	ubo.perspective_matrix[1][1] *= -1;
+
+	glm::mat4 depthProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 1.0f, 96.0f);
+	glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	glm::mat4 depthModelMatrix = glm::mat4(1.0f);
+
+	Math::Matrix4x4 depthMVP = Math::Matrix4x4();
+	depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+
+	void* data;
+	vkMapMemory(m_pIntegration->device(), m_vkUniformBufferMemory, 0, sizeof(ubo), 0, &data);
+	memcpy(data, &ubo, sizeof(ubo));
+	vkUnmapMemory(m_pIntegration->device(), m_vkUniformBufferMemory);
+
+	return result;
+}
+
+VkResult Dodo::Rendering::CShadowMapping::RecordCommandBuffer(VkCommandBuffer _cb)
+{
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+	
+	std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0].color = { 0.2f, 0.2f, 0.2f, 1.0f };
+	clearValues[1].depthStencil = { 1.0f, 0 };
+
+	VkRenderPassBeginInfo rbi = {};
+	rbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	rbi.clearValueCount = clearValues.size();
+	rbi.pClearValues = clearValues.data();
+	rbi.framebuffer = m_vkFramebuffer;
+	rbi.renderPass = m_vkRenderPass;
+	rbi.renderArea = { { 0, 0, }, { 512, 512 } };
+
+	vkCmdBeginRenderPass(_cb, &rbi, VK_SUBPASS_CONTENTS_INLINE);
+
+	std::vector<Entity::CEntity*> ents = Entity::CEntityHandler::GetEntities();
+	std::vector<std::shared_ptr<Components::CMesh>> meshes;
+
+	for (auto ent : ents)
+	{
+		std::shared_ptr<Components::CMesh> mesh = ent->GetComponent<Components::CMesh>();
+		if (mesh != nullptr)
+		{
+			meshes.push_back(mesh);
+		}
+	}
+
+
+	vkCmdBindPipeline(_cb, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vkPipeline);
+	vkCmdBindDescriptorSets(_cb, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vkPipelineLaout, 0, 1, &m_vkDescriptorSet, 0, nullptr);
+
+	VkDeviceSize offsets[1] = { 0 };
+	for (int j = 0; j < meshes.size(); j++)
+	{
+		vkCmdBindVertexBuffers(_cb, 0, 1, &meshes[j]->m_dataBuffers.vertexBuffer, offsets);
+		vkCmdBindIndexBuffer(_cb, meshes[j]->m_dataBuffers.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(_cb, meshes[j]->m_indices.size(), 1, 0, 0, 0);
+	}
+
+	vkCmdEndRenderPass(_cb);
 
 	return result;
 }

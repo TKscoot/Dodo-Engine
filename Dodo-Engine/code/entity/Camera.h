@@ -52,8 +52,6 @@ namespace Dodo
 
 			void HandleMouseMove();
 
-
-
 			float m_fov;
 			float m_znear;
 			float m_zfar;

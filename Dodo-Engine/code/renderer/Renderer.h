@@ -2,9 +2,10 @@
 #include "dodopch.h"
 #include "common/VKIntegration.h"
 #include "common/VKHelpers.h"
+#include "common/DodoTypes.h"
 #include "environment/Window.h"
 #include "components/Material.h"
-#include "common/DodoTypes.h"
+#include "components/Light.h"
 #include "entity/EntityHandler.h"
 #include "entity/Camera.h"
 #include "GUI.h"
@@ -48,6 +49,12 @@ namespace Dodo
 					if (mesh != nullptr)
 					{
 						m_pMeshes.push_back(mesh);
+					}
+
+					std::shared_ptr<CLight> light = std::shared_ptr<CLight>{ ent->GetComponent<CLight>() };
+					if (light != nullptr)
+					{
+						m_pLights.push_back(light);
 					}
 
 					std::shared_ptr<CTerrain> terrain = std::shared_ptr<CTerrain>{ ent->GetComponent<CTerrain>() };
@@ -212,16 +219,19 @@ namespace Dodo
 			std::vector<CMesh::DataBuffer>	   m_matDataBuffers			 = {};
 			std::vector<VkBuffer>			   m_vkUniformBuffers		 = {};
 			std::vector<VkDeviceMemory>		   m_vkUniformBuffersMemory  = {};
+			VkBuffer						   m_vkLightUniformBuffer       = VK_NULL_HANDLE;
+			VkDeviceMemory					   m_vkLightUniformBufferMemory = VK_NULL_HANDLE;
 			VkFormat						   m_vkSwapChainImageFormat;
 			VkExtent2D						   m_vkSwapChainExtent;
 			SyncObjects						   m_sSyncObjects;
 
 			std::shared_ptr<VKIntegration> m_pIntegration;
 			std::shared_ptr<CWindow>       m_pWindow;
-			std::vector<std::shared_ptr<Entity::CEntity>>		m_pEntities;
-			std::vector<std::shared_ptr<Components::CTransform>>     m_pTransforms;
-			std::vector<std::shared_ptr<Components::CMesh>>     m_pMeshes;
-			std::vector<std::shared_ptr<Components::CMaterial>> m_pMaterials;
+			std::vector<std::shared_ptr<Entity::CEntity>>		 m_pEntities;
+			std::vector<std::shared_ptr<Components::CTransform>> m_pTransforms;
+			std::vector<std::shared_ptr<Components::CMesh>>      m_pMeshes;
+			std::vector<std::shared_ptr<Components::CMaterial>>  m_pMaterials;
+			std::vector<std::shared_ptr<Components::CLight>>     m_pLights;
 			std::shared_ptr<Entity::CCamera> m_pCamera;
 
 			std::shared_ptr<GUI> m_pGui;

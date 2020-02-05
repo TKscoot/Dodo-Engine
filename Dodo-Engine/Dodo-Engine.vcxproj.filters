@@ -90,6 +90,9 @@
     <ClCompile Include="code\renderer\ShadowMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\components\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\environment\Window.h">
@@ -318,6 +321,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="code\renderer\ShadowMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\components\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

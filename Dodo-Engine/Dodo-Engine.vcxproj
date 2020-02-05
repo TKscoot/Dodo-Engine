@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\components\Light.cpp" />
     <ClCompile Include="code\common\SimplexNoise.cpp" />
     <ClCompile Include="code\components\ECS.cpp" />
     <ClCompile Include="code\components\Material.cpp" />
@@ -51,6 +52,7 @@
     <ClCompile Include="ext\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="code\components\Light.h" />
     <ClInclude Include="code\common\SimplexNoise.h" />
     <ClInclude Include="code\components\Mesh.h" />
     <ClInclude Include="code\components\Terrain.h" />

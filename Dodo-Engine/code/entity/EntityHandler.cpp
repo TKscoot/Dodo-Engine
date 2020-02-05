@@ -19,20 +19,15 @@ void Dodo::Entity::CEntityHandler::Update()
 	{
 		if (ent != nullptr)
 		{
-			ent->UpdateComponents();
+
+			for (auto& c : ent->GetAllComponents())
+			{
+				c.second->Update();
+			}
+
 			ent->Update();
 		}
 	}
-}
-
-void Dodo::Entity::CEntityHandler::Refresh()
-{
-	//m_vEntities.erase(std::remove_if(std::begin(m_vEntities), std::end(m_vEntities), 
-	//	[](const std::shared_ptr<Dodo::Entity::CEntity> &_entity)
-	//	{
-	//		return !_entity->isActive();
-	//	}
-	//), std::end(m_vEntities));
 }
 
 void Dodo::Entity::CEntityHandler::AddEntity(Dodo::Entity::CEntity *_ent)
